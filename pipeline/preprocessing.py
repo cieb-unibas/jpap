@@ -6,15 +6,18 @@ class DataRetriever():
         self.db_path = db_path
         self.con = sqlite3.connect(db_path)
 
-    def get_postings(self, html = False, sample_size = False):
+    def get_postings(self, institution_name = False, html = False, sample_size = False):
         """
         Retrieve postings text from JPOD.
         """
-        if html:
-            retrieve_col = "html_job_description"
-        else:
-            retrieve_col = "job_description"
+        retrieve_cols = "jp.uniq_id, jp.text_language, jp.job_description"
+        join_statement = ""
 
+        if institution_name:
+            retrieve_cols += ", pc.company_name"
+            join_statement = "LEFT JOIN position_characteristics pc on jp.uniq_id = pc.uniq_id"
+        if html:
+            retrieve_cols += ", jp.html_job_description"
         if sample_size:
             assert isinstance(sample_size, int)
             limit_condition = "LIMIT %d" % sample_size
@@ -22,16 +25,20 @@ class DataRetriever():
             limit_condition = ""
         
         query = """
-        SELECT uniq_id, text_language, %s
-        FROM job_postings
-        WHERE unique_posting_text == 'yes'
+        SELECT %s
+        FROM (
+            SELECT *
+            FROM job_postings
+            WHERE unique_posting_text == 'yes'
+            %s
+            ) jp
         %s
-        """ % (retrieve_col, limit_condition)
+        """ % (retrieve_cols, limit_condition, join_statement)
 
         postings = pd.read_sql(query, self.con)
         
         return postings
-
+    
 class PostingsTranslator():
     def __init__(self, target_language = "en"):
         self.target_language = target_language

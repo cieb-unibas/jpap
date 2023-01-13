@@ -1,2 +1,2 @@
-# jposap
-A pipeline for in-depth analysis of job postings.
+# jpap
+jpap ('job postings analyses pipeline') is a pipeline for in-depth analysis of job postings.
