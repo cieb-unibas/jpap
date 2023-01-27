@@ -1,0 +1,19 @@
+{
+    "manufacturing": ["abb", "sulzer", "liebherr", "comet", "georg fischer"],
+    "pharmaceutical and life sciences": ["roche", "novartis", "lonza", "bachem", "pfizer"],
+    "electricity and energy": ["bkw", "axpo", "alpiq"],
+    "construction": ["implenia", "frutiger"],
+    "wholesale and retail stores": ["migros", "coop", "manor", "zara", "h&m", "c&a", "pkz", "denner"],
+    "transportation and storage": ["sbb", "bls", "die post", "panalpina", "kühne und nagel"],
+    "accommodation, hotel, restaurants and food service": ["hotel ", "restaurant ", "bar "],
+    "information and communication": ["swisscom", "sunrise", "salt", "bedag"],
+    "financial and insurance": ["ubs", "credit suisse", "julius bär", "kantonalbank", "postfinance"],
+    "real estate": ["immobilien"],
+    "legal and consulting": ["anwälte", "pwc", "deloitte"],
+    "research and academia": ["universität", "hochschule"],
+    "public administration and international organizations": ["bundesverwaltung", "kanton", "departement", "bundesamt", "direktion"], 
+    "education, teaching and schools": ["schule"],
+    "medicine, health and hospital": ["inselspital", "universitätsspital", "kantonsspital", "spital", "arztpraxis", "altersheim"],
+    "arts, entertainment and recreation": ["kino", "konzert", "schauspiel", "oper", "theater", "museum", "gallerie"],
+    "newspapers, television and media industry": ["tamedia", "blick", "ringier", "nzz", "srf", "rts", "le monde", "zeitung"]
+}

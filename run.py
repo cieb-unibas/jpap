@@ -14,7 +14,7 @@ for lan in ["eng", "ger", "fre", "ita"]:
 
 #### choose a posting and tokenize its text to sentences:
 postings_lan["eng"]["company_name"][180:200]
-n = 198
+n = 183
 company = postings_lan["eng"]["company_name"][n]
 text = postings_lan["eng"]["job_description"][n]
 
@@ -23,16 +23,47 @@ from jpap import industry_pipeline as ipl
 
 # load a pre-trained zero-shot-learning classifier from huggingface:
 classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
-sectors = [
-    "research and academia", "schools and teaching", "financial and insurance industry", 
-    "manufacturing industry", "pharmaceutical and life sciences industry", 
-    "politics and public administration", "hotels and restaurant industry", 
-    "retail, wholesale and stores industry", "electricity and energy industry",
-    "medicine and hospitals industry", "newspapers, television and media industry", 
-    "information, communication and telecommunication industry"
+
+nace_sectors = [
+    "agriculture", "mining and quarrying", "manufacturing",
+    "electricity", "water supply and waste management",
+    "construction", "wholesale and retail trade", "transportation and storage",
+    "accommodation and food service", "information and communication",
+    "financial and insurance", "real estate", "professional, scientific and technical",
+    "administrative and support service", "public administration", 
+    "education", "health and social work", "arts, entertainment and recreation"
     ]
+print(f'Number of candidate sectors: {len(nace_sectors)}')
+
+adapted_sectors = [
+#    "agriculture and mining", 
+    "manufacturing", "pharmaceutical and life sciences",
+    "electricity and energy", 
+#    "water supply and waste management",
+    "construction", "wholesale and retail stores", 
+    "transportation and storage", "accommodation, hotel, restaurants and food service", 
+    "information and communication", "financial and insurance", 
+    "real estate", "legal and consulting", "research and academia", 
+    "public administration and international organizations", 
+    "education, teaching and schools", 
+    "medicine, health and hospitals", 
+#    "social work", 
+    "arts, entertainment and recreation", 
+    "newspapers, television and media industry"
+    ]
+print(f'Number of candidate sectors: {len(adapted_sectors)}')
+adapted_sectors = [ s + " activities" for s in adapted_sectors]
+
+# sectors = [
+#     "research and academia", "schools and teaching", "financial and insurance industry", 
+#     "manufacturing industry", "pharmaceutical and life sciences industry", 
+#     "politics and public administration", "hotels and restaurant industry", 
+#     "retail, wholesale and stores industry", "electricity and energy industry",
+#     "medicine and hospitals industry", "newspapers, television and media industry", 
+#     "information, communication and telecommunication industry"
+#     ]
 res = ipl.posting_to_industry(
-    text = text, classifier = classifier, sectors = sectors, 
+    text = text, classifier = classifier, sectors = adapted_sectors, 
     company_name = company
     # , retrieve_probas=True
     #, select_sentence_by="company_name"
@@ -41,6 +72,8 @@ res["company"], res["industry"]
 
 # check the selected sentences
 import nltk
-ipl.retrieve_company_description(nltk.sent_tokenize(text),classifier=classifier)
+company_description = ipl.retrieve_company_description(nltk.sent_tokenize(text), classifier=classifier)
+classifier(company_description, candidate_labels = adapted_sectors)
+
 
 # => experiment with few-shot-classifiers instead... use big companies/organizations where we know the ground truth and label them for training.
