@@ -19,7 +19,7 @@ company = postings_lan["eng"]["company_name"][n]
 text = postings_lan["eng"]["job_description"][n]
 
 #### A) ASSIGN POSTINGS TO SECTORS-------------------
-from jpap import industry_pipeline as ipl
+from jpap import industry as ipl
 
 # load a pre-trained zero-shot-learning classifier from huggingface:
 classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
@@ -77,3 +77,17 @@ classifier(company_description, candidate_labels = adapted_sectors)
 
 
 # => experiment with few-shot-classifiers instead... use big companies/organizations where we know the ground truth and label them for training.
+
+# => experiment with question-answering pipline
+question_answerer = pipeline("question-answering")
+postings_lan["eng"]["company_name"][180:200]
+n = 180
+company = postings_lan["eng"]["company_name"][n]
+text = postings_lan["eng"]["job_description"][n]
+text = ipl.retrieve_company_description(sentences = nltk.sent_tokenize(text), classifier = classifier)
+question_answerer(
+    question="To which industry does the employer of this job position belong to?",
+    context=". ".join(text),
+)
+text[1400:1420]
+# => impressive in detection of the important parts but not enough context to deliver standardized results
