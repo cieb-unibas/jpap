@@ -13,8 +13,8 @@ for lan in ["eng", "ger", "fre", "ita"]:
     print("%d postings stored for language '%s'" % (len(postings_lan[lan]), lan))
 
 #### choose a posting and tokenize its text to sentences:
-postings_lan["eng"]["company_name"][180:200]
-n = 183
+postings_lan["eng"]["company_name"][150:200]
+n = 150
 company = postings_lan["eng"]["company_name"][n]
 text = postings_lan["eng"]["job_description"][n]
 
