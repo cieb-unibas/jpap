@@ -1,0 +1,12 @@
+{
+    "manufacturing": ["abb", "sulzer", "liebherr", "comet", "georg fischer"],
+    "pharmaceutical and life sciences": ["roche", "novartis", "lonza", "bachem", "pfizer"],
+    "electricity and energy": ["bkw", "axpo", "alpiq"],
+    "construction": ["implenia", "frutiger"],
+    "wholesale and retail stores": ["migros", "coop", "manor", "zara", "h&m", "c&a", "pkz", "denner"],
+    "transportation and storage": ["sbb", "bls", "die post", "panalpina", "kühne und nagel"],
+    "information and communication": ["swisscom", "sunrise", "salt", "bedag"],
+    "financial and insurance": ["ubs", "credit suisse", "julius bär", "kantonalbank", "postfinance"],
+    "legal and consulting": ["pwc", "deloitte", "ernst & young", "bdo", "mckinsey"],
+    "newspapers, television and media industry": ["tamedia", "blick", "ringier", "nzz", "srf", "rts", "le monde"]
+}
