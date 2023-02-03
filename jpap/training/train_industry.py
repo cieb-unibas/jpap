@@ -3,11 +3,14 @@ import json
 
 import torch
 from transformers import AutoTokenizer, AutoModel
+import pandas as pd
 
 try:
     from .. import preprocessing as pp
+    from .. import utils
 except:
     from jpap import preprocessing as pp
+    from jpap import utils
 
 # configuration
 checkpoint = "distilbert-base-uncased-finetuned-sst-2-english"
@@ -15,17 +18,6 @@ tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 model = AutoModel.from_pretrained(checkpoint)
 
 # data:
-JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
-postings = pp.get_postings(con = JPOD_CON, institution_name=True, language="eng")
-postings_lan = {}
-for lan in ["eng", "ger", "fre", "ita"]:
-    postings_lan[lan] = postings[postings["text_language"] == lan].reset_index(drop=True)
-    print("%d postings stored for language '%s'" % (len(postings_lan[lan]), lan))
-postings_lan["eng"]["company_name"][250:300]
-idx = [298, 285, 265, 266]
-df = postings_lan["eng"].iloc[idx,:][["job_description", "company_name"]].reset_index(drop = True)
-for t in df["job_description"]:
-    print(f'Text length: {len(t.split(" "))}')
 
 # tokenize the texts:
 inputs = tokenizer(list(df["job_description"]), padding = "max_length", truncation = True, return_tensors="pt")
@@ -39,36 +31,76 @@ outputs = model(**inputs)
 outputs
 f'Model has {outputs.last_hidden_state.shape[2]} dimension in last hidden layer'
 
-
-
-
-
-
-
-# --------------------------
-
-def load_training_dataset():
+### data -----
+def load_labelled(file = "jpap/data/industry_label_companies.json"):
     """
-    Load the labelled postings
+    Loads company names that are labelled to an industry. 
     """
-    # with open("../data/industry_company_labels.json") as f:
-    #     train_dat = json.load(f)
-    with open("jpap/data/industry_company_labels.json", "r", encoding = "UTF-8") as f:
-        train_dat = json.load(f)
-    companies = []
-    for company_list in train_dat.values():
-        companies += company_list
+    with open(file, "r", encoding = "UTF-8") as f:
+        labelled_companies = json.load(f)
+    return labelled_companies
+
+def company_name_pattern_query(patterns):
+    """
+    Extract a list of companies that match certain patterns.
     
-    # load and label postings data
-    postings = pp.get_company_postings(con = JPOD_CON, companies = companies, institution_name=True, language="eng")[["job_description", "company_name"]]
-    company_postings = pd.DataFrame(list(set(list(postings["company_name"]))), columns = ["company_name"])
-    industry_labels = []
-    for c in company_postings["company_name"]:
-        industry_labels += [i for i, j in train_dat.items() if c in j]
-    company_postings["industry"] = industry_labels
-    postings = postings.merge(company_postings, on = "company_name")
+    Parameters:
+    ----------
+    patterns : list
+        A list of patterns to search in the matching variable.
+    Returns:
+    --------
+    str:
+        A string in a SQL query format.
+    """
+    like_statement = utils.sql_like_statement(patterns = patterns)
+    
+    query_string = """
+    SELECT company_name
+    FROM position_characteristics
+    WHERE (%s)
+    """ % like_statement
 
-    return postings
+    return query_string
 
-df = load_training_dataset()
-df.groupby(["industry"]).count()
+def get_companies_from_patterns(con, query):
+    """
+    Extract a list of companies that match a certain pattern in there name.
+    """
+    company_list = con.execute(query).fetchall()
+    company_list = [c[0] for c in company_list]
+    return company_list
+
+def create_training_dataset(con):
+    """
+    Creates a dataset of labelled job postings with respect to industries.
+    """
+    # get labelled employers
+    labelled_employers = load_labelled(file = "jpap/data/industry_label_companies.json")
+    # get labelled employer-name patterns and extract employers that match labelled patterns
+    patterns = load_labelled(file = "jpap/data/industry_label_patterns.json")
+    for i, p in patterns.items():
+        pattern_companies = get_companies_from_patterns(
+            con = con, 
+            query = company_name_pattern_query(patterns = p)
+            )
+        if not pattern_companies:
+            continue
+        if i in labelled_employers.keys():
+            labelled_employers[i].append(pattern_companies)
+        else:
+            labelled_employers[i] = pattern_companies
+    # extract all (english) postings from these employers:
+    employer_postings = pp.get_company_postings(
+        con = con, companies = utils.dict_items_to_list(labelled_employers), 
+        institution_name = True, language = "eng")
+    employer_postings = employer_postings
+    # add the industry labels:
+    employer_postings["industry"] = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c][0])
+    
+    return employer_postings[["job_description", "company_name", "industry"]]
+
+if __name__ == "main":
+    JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
+    df = create_training_dataset(con = JPOD_CON)
+    df.groupby(["industry"]).count()
