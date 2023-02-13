@@ -19,7 +19,7 @@ company = postings_lan["eng"]["company_name"][n]
 text = postings_lan["eng"]["job_description"][n]
 
 #### A) ASSIGN POSTINGS TO SECTORS-------------------
-from jpap import industry as ipl
+from scripts.itp import industry as ipl
 
 # load a pre-trained zero-shot-learning classifier from huggingface:
 classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
