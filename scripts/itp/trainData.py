@@ -2,15 +2,11 @@ import sqlite3
 import json
 import os
 
-try:
-    from .. import preprocessing as pp
-    from .. import utils
-except:
-    from jpap import preprocessing as pp
-    from jpap import utils
+from jpap import preprocessing as pp
+from jpap import utils
 
 HERE = os.path.abspath('C:/Users/matth/Documents/github_repos/jpap/jpap/training')
-save_dir = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir, "data", "created", "industry_train.csv"))
+#save_dir = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir, "data", "created", "industry_train.csv"))
 
 ### data -----
 def _load_labels(label_type = "companies"):

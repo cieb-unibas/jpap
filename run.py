@@ -1,6 +1,11 @@
 import sqlite3
-from jpap import preprocessing as jpp
+import os
+
 from transformers import pipeline
+
+from jpap import preprocessing as jpp
+from jpap import translationPipeline as jtp
+from jpap import industryPipeline as jip
 
 #### connect to JPOD and retrieve data
 JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
