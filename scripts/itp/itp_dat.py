@@ -1,14 +1,23 @@
-import sqlite3
 import json
 import os
+import sys
+import sqlite3
 
+HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
+sys.path.append(HOME)
 from jpap import preprocessing as pp
 from jpap import utils
 
-HERE = os.path.abspath('C:/Users/matth/Documents/github_repos/jpap/jpap/training')
-#save_dir = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir, "data", "created", "industry_train.csv"))
+try:
+    JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
+except:
+    JPOD_CON = sqlite3.connect("C:/Users/nigmat01/Desktop/jpod_test.db")
 
-### data -----
+
+def storeat(home_dir = HOME, file_name = "industry_train.csv"):
+    dataDir = home_dir + "/data/created/" + file_name
+    return dataDir
+
 def _load_labels(label_type = "companies"):
     """
     Loads company names or company name patterns that are labelled to industries.
@@ -25,16 +34,15 @@ def _load_labels(label_type = "companies"):
         A dictionary with keys indicating industry labels and values representing company names or company name patterns.
     """
     assert label_type in ["companies", "patterns"], "`type` must be one of `companies` or `patterns`."
-#    label_path = os.path.abspath(os.path.join(__file__, os.pardir, "data"))
-    label_path = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir, "data", "raw"))
+    label_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir, "data", "raw"))
     file = os.path.join(label_path, "industry_label_" + label_type + ".json")
     with open(file, "r", encoding = "UTF-8") as f:
         labels = json.load(f)
     return labels
 
-def _company_name_pattern_query(patterns):
+def _name_pattern_query(patterns):
     """
-    Extract a list of companies that match certain patterns.
+    Extract a list of employers that match certain patterns.
     
     Parameters:
     ----------
@@ -55,9 +63,9 @@ def _company_name_pattern_query(patterns):
 
     return query_string
 
-def _get_companies_from_patterns(con, query):
+def _employers_from_patterns(con, query):
     """
-    Extract a list of companies that match a certain pattern in their name.
+    Extract a list of employera that match a certain pattern in their name.
 
     Parameters:
     ----------
@@ -69,13 +77,13 @@ def _get_companies_from_patterns(con, query):
     Returns:
     --------
     list:
-        A list of company names that are present in the database.
+        A list of employer names that are present in the database.
     """
-    company_list = con.execute(query).fetchall()
-    company_list = [c[0] for c in company_list]
-    return company_list
+    employer_list = con.execute(query).fetchall()
+    employer_list = [c[0] for c in employer_list]
+    return employer_list
 
-def create_training_dataset(con, save_dir = False):
+def create_training_dataset(con, save = False, peak = False):
     """
     Creates a dataset of labelled job postings with respect to industries.
     
@@ -84,14 +92,14 @@ def create_training_dataset(con, save_dir = False):
     con: sqlite.Connection
         A connection to the sqlite database        
     """
-    # get labelled employers
     labelled_employers = _load_labels(label_type = "companies")
-    # get labelled employer-name patterns and extract employers that match labelled patterns
+
+    # extract labelled employer-name patterns and add employers that match these labelled name patterns
     patterns = _load_labels(label_type = "patterns")
     for i, p in patterns.items():
-        pattern_companies = _get_companies_from_patterns(
+        pattern_companies = _employers_from_patterns(
             con = con, 
-            query = _company_name_pattern_query(patterns = p)
+            query = _name_pattern_query(patterns = p)
             )
         if not pattern_companies:
             continue
@@ -99,21 +107,25 @@ def create_training_dataset(con, save_dir = False):
             labelled_employers[i].append(pattern_companies)
         else:
             labelled_employers[i] = pattern_companies
+
     # extract all (english) postings from these employers:
     employer_postings = pp.get_company_postings(
         con = con, companies = utils.dict_items_to_list(labelled_employers), 
         institution_name = True, language = "eng")
     employer_postings = employer_postings
+
     # add the industry labels:
     employer_postings["industry"] = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c][0])
     print("********** Extracted %d postings from the database.**********" % len(employer_postings))
-    # save and return
-    if save_dir:
-        employer_postings.to_csv(save_dir, index = False)
-        print("Training dataset saved to %s" % save_dir)
-    return employer_postings[["job_description", "company_name", "industry"]]
 
-if __name__ == "main":
-    JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
-    create_training_dataset(con = JPOD_CON, save_dir = save_dir).head()
-    
+    # save and return
+    if save:
+        savefile = storeat()
+        employer_postings.to_csv(savefile, index = False)
+        print("Training dataset saved to %s" % savefile)
+    if peak:
+        return print(employer_postings[["job_description", "company_name", "industry"]].head())
+
+
+if __name__ == "__main__":
+    create_training_dataset(con = JPOD_CON, save = True, peak=True)
