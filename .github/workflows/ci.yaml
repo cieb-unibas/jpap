@@ -1,8 +1,17 @@
 name: ci # name of the workflow
-on: [push, pull_request, workflow_dispatch] # event(s) that triggers the workflow
+
+on: 
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    branches: [main]
+
 jobs:
   test: # name of the job. child keys define properties of the job. 
     runs-on: ubuntu-latest # virtaual machine the job will run on
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3 # An action that checks out the repository onto the runner, allowing it to run scripts or other actions against the repo code. should always be included. https://github.com/marketplace/actions/checkout
@@ -17,10 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      
+
       - name: Test with PyTest
         run: | 
           pytest
 
 # cache dependencies etc.: https://docs.github.com/en/actions/using-workflows
 # examples: https://docs.github.com/en/actions/examples/
+# torch with Cuda 11.6.: pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
