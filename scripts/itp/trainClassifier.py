@@ -5,16 +5,17 @@ import sys
 from transformers import AutoTokenizer, AutoModel, pipeline
 import pandas as pd
 
-from scripts.itp.DescExtractor import DescExtractor
+from jpap import industryPipeline as ipl
 
-# paths / directories
+#### paths / directories
 HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
 HOME = os.getcwd()
 sys.path.append(HOME)
 
-def load_labelled(n_postings : int = None, home_dir: str = HOME):
+#### extract company descriptions
+def load_labelled(n_postings : int = None, home_dir: str = HOME) -> pd.DataFrame:
     """
-    Load n labelled postings.
+    Load n postings that are manually labelled to industries.
     """
     df = pd.read_csv(home_dir + "/data/created/industry_train.csv")
     if n_postings:
@@ -23,17 +24,26 @@ def load_labelled(n_postings : int = None, home_dir: str = HOME):
         df = df.iloc[out_postings, :]
     return df
 
-def extract_employer_description(zsc = False):
-
+def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
+    # load data for training
     df = load_labelled()
-    Extractor = DescExtractor(postings = df["job_description"])
-
-    Extractor.by_name(employer_names = df["company_name"])
-
+    # load and configure description ectractor, extract description by company name
+    extractor = ipl.DescExtractor(postings = df["job_description"])
+    extractor.by_name(employer_names = df["company_name"])
+    # enrich extracted description using zsc
     if zsc:
         classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
-        Extractor.by_zsc(classifier=classifier, targets = ["who we are", "who this is"])
-    
-    return df["uniq_id"], Extractor.employer_names, Extractor.employer_desc
-df = pd.DataFrame()
-df["uniq_id"], df["employer"], df["desc"] = extract_employer_description()
+        extractor.by_zsc(classifier=classifier, targets = ["who we are", "who this is"])
+
+    df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
+    return df
+
+df = extract_employer_description().dropna().reset_index(drop=True)[["employer_description", "industry"]]
+
+#### tokenize the input:
+
+#### load BERT-classifier:
+
+#### fine-tune BERT:
+
+#### save the fine-tuned classifier
