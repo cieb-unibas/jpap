@@ -5,8 +5,7 @@ import sqlite3
 
 HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
 sys.path.append(HOME)
-from jpap import preprocessing as pp
-from jpap import utils
+import jpap
 
 try:
     JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
@@ -53,7 +52,7 @@ def _name_pattern_query(patterns):
     str:
         A string in a SQL query format.
     """
-    like_statement = utils.sql_like_statement(patterns = patterns)
+    like_statement = jpap.utils.sql_like_statement(patterns = patterns)
     
     query_string = """
     SELECT company_name
@@ -109,8 +108,8 @@ def create_training_dataset(con, save = False, peak = False):
             labelled_employers[i] = pattern_companies
 
     # extract all (english) postings from these employers:
-    employer_postings = pp.get_company_postings(
-        con = con, companies = utils.dict_items_to_list(labelled_employers), 
+    employer_postings = jpap.preprocessing.get_company_postings(
+        con = con, companies = jpap.utils.dict_items_to_list(labelled_employers), 
         institution_name = True, language = "eng")
     employer_postings = employer_postings
 

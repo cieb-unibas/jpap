@@ -2,11 +2,11 @@
     "accommodation, hotel, restaurants and food service": ["hotel ", "restaurant", " bar "],
     "financial and insurance": [" kantonalbank ", " versicherung "],
     "real estate": ["immobilien"],
-    "legal and consulting": ["anwälte ", "anwalt ", " advokat ", " recht ", "staatsanwalt"],
-    "research and academia": [" universität ", "hochschule", "fachhochschule"],
-    "public administration and international organizations": ["bundesverwaltung", " kanton ", " departement ", " bundesamt ", " direktion "], 
+    "legal and consulting": ["anwälte", " anwalt", "advokat", " recht ", "staatsanwalt"],
+    "research and academia": ["universität", "hochschule", "fachhochschule"],
+    "public administration and international organizations": ["bundesverwaltung", "kanton", "departement ", "bundesamt ", "direktion "], 
     "education, teaching and schools": ["kantonsschule", "gymnasium", "orientierungsschule", "primarschule", "sprachschule"],
-    "medicine, health and hospital": ["universitätsspital", "kantonsspital", "spital", "arztpraxis", "altersheim"],
+    "medicine, health and hospital": ["universitätsspital", "kantonsspital", "spital", "arztpraxis", "altersheim", "inselspital", "insel "],
     "arts, entertainment and recreation": ["kino", "konzert", "schauspiel", "oper", "theater", "museum", "gallerie"],
     "newspapers, television and media industry": ["zeitung"]
 }
