@@ -4,6 +4,9 @@ def sql_pattern_formatting(patterns):
     """
     if isinstance(patterns, str):
         patterns = [patterns]
+    for p in patterns:
+        if not isinstance(patterns[p], str):
+            raise TypeError(f'"Input "{p}" to parameter `patterns` must be of type `str`"')
     formatted_pattern = ["'% " + p + "%'" for p in patterns]
     return formatted_pattern
 
@@ -39,3 +42,5 @@ def dict_items_to_list(input_dict):
     for v in input_dict.values():
         out_list += v
     return out_list
+
+p = 1
