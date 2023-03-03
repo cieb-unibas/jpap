@@ -40,6 +40,7 @@ def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
 
 df = extract_employer_description().dropna().reset_index(drop=True)[["employer_description", "industry"]]
 
+
 #### tokenize the input:
 
 #### load BERT-classifier:

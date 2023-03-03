@@ -1,7 +1,12 @@
 import sqlite3
 import pandas as pd
 
-def get_postings(con, institution_name: bool = False, html: bool = False, sample_size = False, language: str = None):
+def get_postings(
+        con: sqlite3.Connection, 
+        institution_name: bool = False, 
+        html: bool = False, 
+        sample_size = False, 
+        language: str = None) -> pd.DataFrame:
     """
     Retrieve postings text from JPOD.
     """
@@ -17,7 +22,7 @@ def get_postings(con, institution_name: bool = False, html: bool = False, sample
     if html:
         retrieve_cols += ", jp.html_job_description"
     if language:
-        language_condition = "AND text_language == '%s'" %language
+        language_condition = "AND text_language == '%s'" % language
     if sample_size:
         assert isinstance(sample_size, int)
         limit_condition = "LIMIT %d" % sample_size

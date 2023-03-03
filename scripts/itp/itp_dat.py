@@ -113,6 +113,9 @@ def create_training_dataset(con, save = False, peak = False):
         institution_name = True, language = "eng")
     employer_postings = employer_postings
 
+    # TO DO: double check whether language is english using: https://huggingface.co/papluca/xlm-roberta-base-language-detection
+    
+
     # add the industry labels:
     employer_postings["industry"] = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c][0])
     print("********** Extracted %d postings from the database.**********" % len(employer_postings))
