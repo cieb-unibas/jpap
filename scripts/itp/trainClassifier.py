@@ -22,6 +22,7 @@ def load_labelled(n_postings : int = None, home_dir: str = HOME) -> pd.DataFrame
         random.seed(1)
         out_postings = random.choices(range(len(df)), k = n_postings)
         df = df.iloc[out_postings, :]
+        df.reset_index(drop=True)
     return df
 
 def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
@@ -38,8 +39,7 @@ def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
     df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
     return df
 
-df = extract_employer_description().dropna().reset_index(drop=True)[["employer_description", "industry"]]
-
+df = extract_employer_description(zsc=False).dropna().reset_index(drop=True)[["employer_description", "industry"]]
 
 #### tokenize the input:
 
