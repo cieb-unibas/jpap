@@ -26,9 +26,8 @@ Install the `transformers` library as specified by [Huggingface](https://hugging
 conda install -c huggingface transformers
 ```
 
-## Industry Pipeline (JIP)
+## Job Postings Industry Pipeline (IPL)
 Find efficient ways to assign postings to industries.
 
-
-## Translation Pipeline (JTP)
+## Jop Postings Translation Pipeline (TPL)
 Multilingual translations for job postings.

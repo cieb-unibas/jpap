@@ -5,7 +5,7 @@ import sys
 from transformers import AutoTokenizer, AutoModel, pipeline
 import pandas as pd
 
-from jpap import industryPipeline as ipl
+from jpap import ipl
 
 #### paths / directories
 HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
