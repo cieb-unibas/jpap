@@ -28,61 +28,42 @@ class DescExtractor(object):
             self.input = updated_postings
             self.tokenized_input = self.tokenize_all()
 
+    def assign_empdesc(self, desc: str, idx: int) -> None:
+        if len(self.employer_desc) > idx:
+            self.employer_desc[idx] += " " + desc
+        else:
+            self.employer_desc.append(desc)
+
+    def log_retrieved(self, by: str) -> None:
+        self.retrieved_by += [by]
+        if len(self.retrieved_by) > 1:
+            self.retrieved_by = list(set(self.retrieved_by))
+    
     def by_name(self, employer_names):
         """
         """
         assert len(self.postings) == len(employer_names), "`employer_names` must have the same length as the number of postings supplied to `DescEctractor()`."
-        
         self.employer_names = employer_names
         self.update()
-        
         for i, t in enumerate(self.tokenized_input):
             # tokenize and retrieve relevant sentences
-            company_sentences = [s for s in t if employer_names[i] in s.lower()]
-            if len(company_sentences) > 1:
-                company_description = [" ".join(company_sentences)]
-            else:
-                company_description = company_sentences
-
-            # check if description is already available and will be enriched or not.
-            if len(self.employer_desc) <= i:
-                if company_description:
-                    self.employer_desc += company_description
-                else:
-                    self.employer_desc += [""]
-            else:
-                if company_description:
-                    self.employer_desc[i] += company_description[0]
-
-        self.retrieved_by += ["name"]
-        if len(self.retrieved_by) > 1:
-            self.retrieved_by = list(set(self.retrieved_by))
+            employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
+            # assign the employer description
+            self.assign_empdesc(desc = employer_desc, idx = i)
+        # log the procedure
+        self.log_retrieved(by = "name")
     
     def by_zsc(self, classifier, targets):
         """
         """
         self.update()
         labels = targets + ["other"]
-
         for i, t in enumerate(self.tokenized_input):
-            company_sentences = [classifier(s, candidate_labels=labels) for s in t]
-            company_sentences = [s["sequence"] for s in company_sentences if s["labels"][0] in targets]
-
-            if len(company_sentences) > 1:
-                company_description = [" ".join(company_sentences)]
-            else:
-                company_description = company_sentences
-
-            # check if description is already available and will be enriched or not.
-            if len(self.employer_desc) <= i:
-                if company_description:
-                    self.employer_desc += company_description
-                else:
-                    self.employer_desc += [""]
-            else:
-                if company_description:
-                    self.employer_desc[i] += company_description[0]
-
-        self.retrieved_by += ["zsc"]
-        if len(self.retrieved_by) > 1:
-            self.retrieved_by = list(set(self.retrieved_by))
+            employer_sentences = [classifier(s, candidate_labels=labels) for s in t]
+            employer_desc = [s["sequence"] for s in employer_sentences if s["labels"][0] in targets]
+            if len(employer_desc) > 1:
+                employer_desc = [" ".join(employer_desc)]
+            # assign the employer description
+            self.assign_empdesc(desc = employer_desc, idx = i)
+        # log the procedure
+        self.log_retrieved(by = "zsc")
