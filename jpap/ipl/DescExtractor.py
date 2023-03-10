@@ -12,7 +12,12 @@ class DescExtractor(object):
         tokenized_input = [nltk.sent_tokenize(p) for p in self.input]
         return tokenized_input 
     
-    def update(self):
+    def update(self, tokenized_posting, employer_description):
+        updated_posting = [s for s in tokenized_posting if s not in nltk.sent_tokenize(employer_description)]
+        updated_posting = " ".join(updated_posting)
+        return updated_posting
+
+    def update_all(self):
         """
         """
         if not self.retrieved_by:
@@ -20,17 +25,16 @@ class DescExtractor(object):
         else:
             updated_postings = []
             for p, d in zip(self.tokenized_input, self.employer_desc):
-                tokenized_empdesc = nltk.sent_tokenize(d)
-                updated_posting = [s for s in p if s not in tokenized_empdesc]
-                updated_posting = " ".join(updated_posting)
+                updated_posting = self.update(p, d)
                 updated_postings.append(updated_posting)
-            # update the attributes:
-            self.input = updated_postings
             self.tokenized_input = self.tokenize_all()
 
     def assign_empdesc(self, desc: str, idx: int) -> None:
         if len(self.employer_desc) > idx:
-            self.employer_desc[idx] += " " + desc
+            if len(self.employer_desc[idx]) > 0:
+                self.employer_desc[idx] += " " + desc
+            else:
+                self.employer_desc[idx] += desc
         else:
             self.employer_desc.append(desc)
 
@@ -44,26 +48,19 @@ class DescExtractor(object):
         """
         assert len(self.postings) == len(employer_names), "`employer_names` must have the same length as the number of postings supplied to `DescEctractor()`."
         self.employer_names = employer_names
-        self.update()
+        self.update_all()
         for i, t in enumerate(self.tokenized_input):
-            # tokenize and retrieve relevant sentences
             employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
-            # assign the employer description
             self.assign_empdesc(desc = employer_desc, idx = i)
-        # log the procedure
         self.log_retrieved(by = "name")
     
     def by_zsc(self, classifier, targets):
         """
         """
-        self.update()
+        self.update_all()
         labels = targets + ["other"]
         for i, t in enumerate(self.tokenized_input):
             employer_sentences = [classifier(s, candidate_labels=labels) for s in t]
-            employer_desc = [s["sequence"] for s in employer_sentences if s["labels"][0] in targets]
-            if len(employer_desc) > 1:
-                employer_desc = [" ".join(employer_desc)]
-            # assign the employer description
+            employer_desc = " ".join([s["sequence"] for s in employer_sentences if s["labels"][0] in targets])
             self.assign_empdesc(desc = employer_desc, idx = i)
-        # log the procedure
         self.log_retrieved(by = "zsc")

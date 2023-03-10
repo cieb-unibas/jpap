@@ -22,20 +22,22 @@ def load_labelled(n_postings : int = None, home_dir: str = HOME) -> pd.DataFrame
         random.seed(1)
         out_postings = random.choices(range(len(df)), k = n_postings)
         df = df.iloc[out_postings, :]
-        df.reset_index(drop=True)
+        df = df.reset_index(drop=True)
     return df
 
 def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
-    # load data for training
+    """
+    Extract sentences of a posting that describe the employer based on
+    employer name and/or zero-shot sentence classifier.
+    """
     df = load_labelled()
-    # load and configure description ectractor, extract description by company name
+    # extract description by company name
     extractor = ipl.DescExtractor(postings = df["job_description"])
     extractor.by_name(employer_names = df["company_name"])
     # enrich extracted description using zsc
     if zsc:
         classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
         extractor.by_zsc(classifier=classifier, targets = ["who we are", "who this is"])
-
     df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
     return df
 
