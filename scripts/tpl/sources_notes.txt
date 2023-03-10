@@ -8,12 +8,12 @@
 # code as english vs. rest
 # https://huggingface.co/datasets/papluca/language-identification
 
-# Kaggle
+### Kaggle
 # code as english vs. rest
 # https://www.kaggle.com/datasets/basilb2s/language-detection
 # https://www.kaggle.com/datasets/chazzer/big-language-detection-dataset
 
-# WiLI
+### WiLI
 # https://paperswithcode.com/paper/the-wili-benchmark-dataset-for-written
 # https://zenodo.org/record/841984
 
