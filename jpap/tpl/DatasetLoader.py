@@ -1,13 +1,14 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from datasets import load_dataset
 
 class DatasetLoader():
-    def __init__(self, source: str = "huggingface", dataset_id: str = "papluca/language-identification", targets: list = ["en"], seed: int = 10032023):
+    def __init__(self, source: str = "huggingface", dataset_id: str = "papluca/language-identification", target: str = "en", seed: int = 10032023):
         self.source = source
         self.dataset_id = dataset_id
         self.dataset = self.get_data()
-        self.targets = targets
+        self.target = target
         self.seed = seed
     
     def get_data(self):
@@ -20,7 +21,7 @@ class DatasetLoader():
     def relabel(self, data):
         if self.source != "huggingface":
             assert "labels" in self.dataset.columns
-        labelled = [l if l in self.targets else "rest" for l in data["labels"]]
+        labelled = [l if l == self.target else "rest" for l in data["labels"]]
         return labelled
 
     def update(self):
@@ -46,3 +47,7 @@ class DatasetLoader():
         df["train"], df["test"] = train_test_split(self.dataset, test_size=test_size, random_state=self.seed, stratify=True)
         df["train"], df["validation"] = train_test_split(df["train"], test_size=val_size, random_state=self.seed, stratify=True)
         self.dataset = df
+
+    def label(self, partition):
+        self.label_dict = {"rest": 0, self.target: 1}
+        return np.array([1 if x == self.target else 0 for x in self.dataset[partition]["labels"]])
