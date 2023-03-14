@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split
 from datasets import load_dataset
 
@@ -48,6 +49,12 @@ class DatasetLoader():
         df["train"], df["validation"] = train_test_split(df["train"], test_size=val_size, random_state=self.seed, stratify=True)
         self.dataset = df
 
-    def label(self, partition):
+    def label(self, partition, ouput_mode = "np"):
         self.label_dict = {"rest": 0, self.target: 1}
-        return np.array([1 if x == self.target else 0 for x in self.dataset[partition]["labels"]])
+        out = np.array([1 if x == self.target else 0 for x in self.dataset[partition]["labels"]])
+        if ouput_mode == "pt":
+            return torch.from_numpy(out)
+        else:
+            return out
+        
+        
