@@ -3,11 +3,14 @@ import string
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset
+
 from datasets import load_dataset
 
-class DatasetLoader():
+class ENDetectionTrainLoader():
     def __init__(self, source: str = "huggingface", dataset_id: str = "papluca/language-identification", target: str = "en", seed: int = 10032023):
         self.source = source
         self.dataset_id = dataset_id
@@ -54,9 +57,9 @@ class DatasetLoader():
 
     def label(self, partition, ouput_mode = "np"):
         self.label_dict = {"rest": 0, self.target: 1}
-        out = np.array([1 if x == self.target else 0 for x in self.dataset[partition]["labels"]])
+        out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
         if ouput_mode == "pt":
-            return torch.from_numpy(out)
+            return torch.tensor(out).int()
         else:
             return out
         
@@ -90,13 +93,24 @@ class DatasetLoader():
         tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
         if max_len == None:
             max_len = max([len(x) for x in tokenized_sequence])
-        tokenized_sequence = np.array([np.array(x + ([0] * (max_len - len(x))), dtype=np.int32) for x in tokenized_sequence], dtype=np.int32)
+        tokenized_sequence = [x if len(x) <= max_len else x[:max_len] for x in tokenized_sequence]
+        tokenized_sequence = [x + ([0] * (max_len - len(x))) for x in tokenized_sequence]
         if output_mode == "pt":
-            return torch.from_numpy(tokenized_sequence)
+            return torch.tensor(tokenized_sequence).int()
         else:
             return tokenized_sequence
 
-class LangDetectDataset(Dataset):
+    def getLangDetectDataset(self, partition: str = "train", output_mode: str = "pt", max_len: int = 100):
+        """
+        Transform and extracts a torch Dataset from the data.
+        """
+        df = ENDetectDataset(
+            labels = self.label(partition=partition, ouput_mode=output_mode),
+            texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
+            )
+        return df       
+
+class ENDetectDataset(Dataset):
     def __init__(self, labels, texts) -> None:
         super().__init__()
         self.labels = labels
@@ -109,3 +123,67 @@ class LangDetectDataset(Dataset):
         text = self.texts[idx]
         label = self.labels[idx]
         return text, label
+
+class ENDetectionModel(nn.Module):
+    def __init__(self, vocab_size: int, embedding_dim: int, sequence_length : int) -> None:
+        super(ENDetectionModel, self).__init__()
+        # parameters:
+        self.vocab_size = vocab_size
+        self.sequence_length = sequence_length
+        self.embedding_dim = embedding_dim
+        # layers
+        self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim = embedding_dim)
+        self.L1 = nn.Linear(embedding_dim, int(embedding_dim / 4), bias=True)
+        a1 = nn.ReLU()
+        self.L2 = nn.Linear(int(embedding_dim / 4), 1, bias=True)
+        a2 = nn.Sigmoid()
+        self.init_weights()
+        self.model_list = nn.ModuleList([self.embedding, self.L1, a1, self.L2, a2])
+
+    def init_weights(self, init_range: float = 0.5):
+        init_range = abs(init_range)
+        self.embedding.weight.data.uniform_(-init_range, init_range)
+        self.L1.weight.data.uniform_(-init_range, init_range)
+        self.L1.bias.data.zero_()
+        self.L2.weight.data.uniform_(-init_range, init_range)
+        self.L2.bias.data.zero_()
+
+    def forward(self, x):
+        for f in self.model_list:
+            x = f(x)
+        return x
+
+
+def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, loss_function, train_samples):
+    # initialize the losses and accuracies
+    loss_hist_train = [0] * epochs
+    acc_hist_train = [0] * epochs
+    loss_hist_val = [0] * epochs
+    acc_hist_val = [0] * epochs
+
+    for epoch in range(epochs):
+        # train on batches
+        for x_batch, y_batch in train_dl:
+            pred = model(x_batch)[:, 0] # predict
+            pred = pred.reshape(pred.shape[0])
+            loss = loss_function(pred, y_batch.float()) # calculate loss
+            loss.backward() # calculate the gradient on the loss
+            model_optimizer.step() # get the optimizer
+            model_optimizer.zero_grad() # set optimizer weights to zero again
+            loss_hist_train[epoch] += loss.item() # record the loss
+            correct = ((pred>=0.5).float() == y_batch).float() # record the accuracy
+            acc_hist_train[epoch] += correct.mean()
+        
+        # get the mean loss and accuracy across batches per epoch
+        loss_hist_train[epoch] /= train_samples
+        acc_hist_train[epoch] /= train_samples/len(y_batch)
+        
+        # preditc and evaluate on validation set
+        pred = model(x_valid)[:, 0]
+        pred = pred.reshape(pred.shape[0])
+        loss = loss_function(pred, y_valid.float())
+        loss_hist_val[epoch] += loss.item()
+        correct = ((pred>=0.5).float() == y_valid).float()
+        acc_hist_val[epoch] += correct.mean()
+
+    return loss_hist_train, acc_hist_train, loss_hist_val, acc_hist_val
