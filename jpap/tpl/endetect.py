@@ -25,23 +25,6 @@ class ENDetectionTrainLoader():
             dat = pd.read_csv(filepath_or_buffer = self.dataset_id)
         return dat
     
-    def relabel(self, data):
-        if self.source != "huggingface":
-            assert "labels" in self.dataset.columns
-        labelled = [l if l == self.target else "rest" for l in data["labels"]]
-        return labelled
-
-    def update(self):
-        if self.source == "huggingface":
-            df = {}
-            for partition in ["train", "test", "validation"]:
-                dat = self.dataset[partition].to_pandas()
-                dat["labels"] = self.relabel(data = dat)
-                df[partition] = dat
-            self.dataset = df
-        else:
-            self.dataset["labels"] = self.relabel(data = self.dataset)
-
     def split(self, test_size):
         assert isinstance(self.dataset, pd.DataFrame), "Convert dataset to a pandas.DataFrame object."
         if isinstance(test_size, float):
@@ -55,11 +38,14 @@ class ENDetectionTrainLoader():
         df["train"], df["validation"] = train_test_split(df["train"], test_size=val_size, random_state=self.seed, stratify=True)
         self.dataset = df
 
-    def label(self, partition, ouput_mode = "np"):
+    def label(self, partition, stratified_dataset = False, ouput_mode = "np"):
         self.label_dict = {"rest": 0, self.target: 1}
-        out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
+        if stratified_dataset:
+            out = [1 if x == self.target else 0 for x in self.stratified_dataset[partition]["labels"]]           
+        else:
+            out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
         if ouput_mode == "pt":
-            return torch.tensor(out).int()
+            return torch.tensor(out, dtype=torch.int)
         else:
             return out
         
@@ -89,25 +75,58 @@ class ENDetectionTrainLoader():
         processed_text = [self.vocabulary[t] if t in self.vocabulary.keys() else 1 for t in self.split_to_tokens(text)]
         return processed_text
 
-    def tokenize_sequence(self, partition: str, output_mode: str, max_len: int = None):
-        tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
+    def tokenize_sequence(self, partition: str, output_mode: str, stratified_data = False, max_len: int = None):
+        if stratified_data:
+            tokenized_sequence = [self.tokenize(text) for text in self.stratified_dataset[partition]["text"]]
+        else:
+            tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
         if max_len == None:
             max_len = max([len(x) for x in tokenized_sequence])
         tokenized_sequence = [x if len(x) <= max_len else x[:max_len] for x in tokenized_sequence]
         tokenized_sequence = [x + ([0] * (max_len - len(x))) for x in tokenized_sequence]
         if output_mode == "pt":
-            return torch.tensor(tokenized_sequence).int()
+            return torch.tensor(tokenized_sequence, dtype=torch.int)
         else:
             return tokenized_sequence
+        
+    def stratify(self, target_share: float = 0.3):
+        """
+        Stratify every partition to have at least `target_share` of target samples.
+        """
+        for partition in ["train", "test", "validation"]:
+            # get the data
+            if self.source == "huggingface":
+                df = pd.DataFrame(self.dataset[partition])
+            else:
+                df = self.dataset[partition]
+            # split data by target labels
+            target_class, rest = df.loc[(df.labels == self.target), :].reset_index(drop=True), df.loc[(df.labels != self.target), :].reset_index(drop=True) 
+            n_rest = round(len(target_class) / target_share)
+            # subset, concatate and shuffle
+            df = pd.concat([target_class, rest.sample(n = n_rest, random_state=self.seed)])
+            df = df.sample(frac = 1, random_state = self.seed).reset_index(drop = True)
+            # update the original data
+            self.stratified_dataset = {partition: {"labels": [], "texts": []}}
+            self.stratified_dataset[partition]["labels"] += df["labels"]
+            self.stratified_dataset[partition]["texts"] += df["texts"]
+            print("%s dataset stratified." % partition)
 
-    def getLangDetectDataset(self, partition: str = "train", output_mode: str = "pt", max_len: int = 100):
+    def getLangDetectDataset(
+            self, partition: str = "train", stratified_dataset = False,
+            output_mode: str = "pt", max_len: int = 100):
         """
         Transform and extracts a torch Dataset from the data.
         """
-        df = ENDetectDataset(
-            labels = self.label(partition=partition, ouput_mode=output_mode),
-            texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
-            )
+        if stratified_dataset:
+            df = ENDetectDataset(
+                labels = self.label(partition=partition, stratified_dataset=True, ouput_mode=output_mode),
+                texts = self.tokenize_sequence(partition=partition, stratified_dataset=True, output_mode=output_mode, max_len=max_len)
+                )
+        else:
+            df = ENDetectDataset(
+                labels = self.label(partition=partition, ouput_mode=output_mode),
+                texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
+                )
         return df       
 
 class ENDetectDataset(Dataset):
@@ -153,7 +172,6 @@ class ENDetectionModel(nn.Module):
             x = f(x)
         return x
 
-
 def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, loss_function, train_samples):
     # initialize the losses and accuracies
     loss_hist_train = [0] * epochs
@@ -171,10 +189,10 @@ def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, lo
             model_optimizer.step() # get the optimizer
             model_optimizer.zero_grad() # set optimizer weights to zero again
             loss_hist_train[epoch] += loss.item() # record the loss
-            correct = ((pred>=0.5).float() == y_batch).float() # record the accuracy
-            acc_hist_train[epoch] += correct.mean()
+            correct = ((pred>=0.5).int() == y_batch).float() # record the accuracy
+            acc_hist_train[epoch] += correct.mean().float().item()
         
-        # get the mean loss and accuracy across batches per epoch
+        # get the mean training loss and accuracy across batches per epoch
         loss_hist_train[epoch] /= train_samples
         acc_hist_train[epoch] /= train_samples/len(y_batch)
         
@@ -183,7 +201,14 @@ def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, lo
         pred = pred.reshape(pred.shape[0])
         loss = loss_function(pred, y_valid.float())
         loss_hist_val[epoch] += loss.item()
-        correct = ((pred>=0.5).float() == y_valid).float()
-        acc_hist_val[epoch] += correct.mean()
+        correct = ((pred>=0.5).int() == y_valid).float()
+        acc_hist_val[epoch] += correct.mean().float().item()
+
+        # log:
+        if epoch % 5 == 0:
+            print("Validation loss after %d epochs: " % epoch, round(loss_hist_val[epoch], 3),
+                  "\nValidation accuracy after %d epochs: " % epoch, round(acc_hist_val[epoch], 3))
+
 
     return loss_hist_train, acc_hist_train, loss_hist_val, acc_hist_val
+
