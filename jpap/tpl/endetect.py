@@ -1,49 +1,63 @@
 import string
 
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
+import random
 
 import torch
 import torch.nn as nn
+
 from torch.utils.data import Dataset
 
-from datasets import load_dataset
-
 class ENDetectionTrainLoader():
-    def __init__(self, source: str = "huggingface", dataset_id: str = "papluca/language-identification", target: str = "en", seed: int = 10032023):
-        self.source = source
-        self.dataset_id = dataset_id
-        self.dataset = self.get_data()
+    def __init__(
+            self, dataset_path: str = "C:/Users/matth/Documents/cieb/endetect_train.csv", 
+            target: str = "en", target_share : float = None, seed: int = 10032023
+            ):
+        self.dataset_path = dataset_path
         self.target = target
+        self.target_share = target_share
         self.seed = seed
+        self.dataset = self.get_data()
     
     def get_data(self):
-        if self.source == "huggingface":
-            dat = load_dataset(path = self.dataset_id)
-        else:
-            dat = pd.read_csv(filepath_or_buffer = self.dataset_id)
+
+        dat = pd.read_csv(filepath_or_buffer = self.dataset_path)
+
+        if self.target_share:
+            df_target_group = dat.loc[dat.labels == self.target, :].reset_index(drop=True)
+            n_target_group = len(df_target_group)
+            
+            df_other_group = dat.loc[dat.labels != self.target, :].reset_index(drop=True)
+            n_other_group = round(n_target_group / self.target_share)
+            random.seed(self.seed)
+            df_other_group = df_other_group.iloc[random.choices(range(len(df_other_group)), k=n_other_group), :].reset_index(drop=True)
+
+            dat = pd.concat([df_target_group, df_other_group], axis = 0)
+
         return dat
     
     def split(self, test_size):
         assert isinstance(self.dataset, pd.DataFrame), "Convert dataset to a pandas.DataFrame object."
+        # determin number of samples
         if isinstance(test_size, float):
-            n_test = (len(self.dataset) * test_size)
-            val_size =  n_test / (len(self.dataset) - n_test)
+            test_size = round(len(self.dataset) * test_size)
+            n_val = test_size
         else:
-            val_size = test_size
-        self.dataset = self.dataset.sample(fraction = 1, seed = self.seed) # shuffle
+            n_val = test_size
+        # shuffle
+        random.seed(self.seed)
+        self.dataset = self.dataset.sample(frac = 1).reset_index(drop = True) # shuffle
+        # split
         df = {}
-        df["train"], df["test"] = train_test_split(self.dataset, test_size=test_size, random_state=self.seed, stratify=True)
-        df["train"], df["validation"] = train_test_split(df["train"], test_size=val_size, random_state=self.seed, stratify=True)
+        df["test"] = self.dataset.iloc[:test_size, :].reset_index(drop=True)
+        df["validation"] = self.dataset.iloc[test_size : test_size + n_val, :].reset_index(drop=True)
+        df["train"] = self.dataset.iloc[test_size + n_val:, :].reset_index(drop=True)
         self.dataset = df
+        return self
 
-    def label(self, partition, stratified_dataset = False, ouput_mode = "np"):
+    def label(self, partition, ouput_mode = "np"):
         self.label_dict = {"rest": 0, self.target: 1}
-        if stratified_dataset:
-            out = [1 if x == self.target else 0 for x in self.stratified_dataset[partition]["labels"]]           
-        else:
-            out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
+        out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
         if ouput_mode == "pt":
             return torch.tensor(out, dtype=torch.int)
         else:
@@ -54,9 +68,13 @@ class ENDetectionTrainLoader():
         tokenized_text = cleaned_text.lower().split()
         return tokenized_text
 
-    def vocab(self, max_tokens: int = 50000, partition: str = "train"):
+    def vocab(self, max_tokens: int = 50000, partition: str = None):
+        if partition:
+            texts = self.dataset[partition]["text"]
+        else:
+            texts = self.dataset["text"]
         counter = {}
-        for text in self.dataset[partition]["text"]:
+        for text in texts:
             tokens = self.split_to_tokens(text)
             for token in tokens:
                 if token not in counter:
@@ -68,7 +86,10 @@ class ENDetectionTrainLoader():
             sorted_tokens = sorted_tokens[:max_tokens-2]
         sorted_tokens = ["<pad>", "<unk>"] + sorted_tokens
         self.vocabulary = {token: i for i, token in enumerate(sorted_tokens)}
-        print("Vocabulary specified based on %s partition" % partition)
+        if partition:
+            print("Vocabulary specified based on %s partition" % partition)
+        else:
+            print("Vocabulary specified based on full dataset.")
         return self
 
     def tokenize(self, text):
@@ -76,10 +97,7 @@ class ENDetectionTrainLoader():
         return processed_text
 
     def tokenize_sequence(self, partition: str, output_mode: str, stratified_data = False, max_len: int = None):
-        if stratified_data:
-            tokenized_sequence = [self.tokenize(text) for text in self.stratified_dataset[partition]["text"]]
-        else:
-            tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
+        tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
         if max_len == None:
             max_len = max([len(x) for x in tokenized_sequence])
         tokenized_sequence = [x if len(x) <= max_len else x[:max_len] for x in tokenized_sequence]
@@ -89,44 +107,14 @@ class ENDetectionTrainLoader():
         else:
             return tokenized_sequence
         
-    def stratify(self, target_share: float = 0.3):
-        """
-        Stratify every partition to have at least `target_share` of target samples.
-        """
-        for partition in ["train", "test", "validation"]:
-            # get the data
-            if self.source == "huggingface":
-                df = pd.DataFrame(self.dataset[partition])
-            else:
-                df = self.dataset[partition]
-            # split data by target labels
-            target_class, rest = df.loc[(df.labels == self.target), :].reset_index(drop=True), df.loc[(df.labels != self.target), :].reset_index(drop=True) 
-            n_rest = round(len(target_class) / target_share)
-            # subset, concatate and shuffle
-            df = pd.concat([target_class, rest.sample(n = n_rest, random_state=self.seed)])
-            df = df.sample(frac = 1, random_state = self.seed).reset_index(drop = True)
-            # update the original data
-            self.stratified_dataset = {partition: {"labels": [], "texts": []}}
-            self.stratified_dataset[partition]["labels"] += df["labels"]
-            self.stratified_dataset[partition]["texts"] += df["texts"]
-            print("%s dataset stratified." % partition)
-
-    def getLangDetectDataset(
-            self, partition: str = "train", stratified_dataset = False,
-            output_mode: str = "pt", max_len: int = 100):
+    def getLangDetectDataset(self, partition: str = "train", output_mode: str = "pt", max_len: int = 100):
         """
         Transform and extracts a torch Dataset from the data.
         """
-        if stratified_dataset:
-            df = ENDetectDataset(
-                labels = self.label(partition=partition, stratified_dataset=True, ouput_mode=output_mode),
-                texts = self.tokenize_sequence(partition=partition, stratified_dataset=True, output_mode=output_mode, max_len=max_len)
-                )
-        else:
-            df = ENDetectDataset(
-                labels = self.label(partition=partition, ouput_mode=output_mode),
-                texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
-                )
+        df = ENDetectDataset(
+            labels = self.label(partition=partition, ouput_mode=output_mode),
+            texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
+            )
         return df       
 
 class ENDetectDataset(Dataset):
@@ -144,20 +132,21 @@ class ENDetectDataset(Dataset):
         return text, label
 
 class ENDetectionModel(nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int, sequence_length : int) -> None:
+    def __init__(self, vocab_size: int, embedding_dim: int, hidden_units: int) -> None:
         super(ENDetectionModel, self).__init__()
         # parameters:
         self.vocab_size = vocab_size
-        self.sequence_length = sequence_length
         self.embedding_dim = embedding_dim
         # layers
-        self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim = embedding_dim)
-        self.L1 = nn.Linear(embedding_dim, int(embedding_dim / 4), bias=True)
+        self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim = embedding_dim, padding_idx=0)
+        self.L1 = nn.Linear(embedding_dim, hidden_units, bias=True)
         a1 = nn.ReLU()
-        self.L2 = nn.Linear(int(embedding_dim / 4), 1, bias=True)
-        a2 = nn.Sigmoid()
+        self.L2 = nn.Linear(hidden_units, int(hidden_units / 4), bias=True)
+        a2 = nn.ReLU()
+        self.L3 = nn.Linear(int(hidden_units / 4), 1, bias=True)
+        a3 = nn.Sigmoid()
         self.init_weights()
-        self.model_list = nn.ModuleList([self.embedding, self.L1, a1, self.L2, a2])
+        self.model_list = nn.ModuleList([self.embedding, self.L1, a1, self.L2, a2, self.L3, a3])
 
     def init_weights(self, init_range: float = 0.5):
         init_range = abs(init_range)
@@ -166,13 +155,15 @@ class ENDetectionModel(nn.Module):
         self.L1.bias.data.zero_()
         self.L2.weight.data.uniform_(-init_range, init_range)
         self.L2.bias.data.zero_()
+        self.L3.weight.data.uniform_(-init_range, init_range)
+        self.L3.bias.data.zero_()
 
     def forward(self, x):
         for f in self.model_list:
             x = f(x)
         return x
 
-def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, loss_function, train_samples):
+def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, loss_function):
     # initialize the losses and accuracies
     loss_hist_train = [0] * epochs
     acc_hist_train = [0] * epochs
@@ -180,7 +171,6 @@ def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, lo
     acc_hist_val = [0] * epochs
 
     for epoch in range(epochs):
-        # train on batches
         for x_batch, y_batch in train_dl:
             pred = model(x_batch)[:, 0] # predict
             pred = pred.reshape(pred.shape[0])
@@ -188,20 +178,24 @@ def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, lo
             loss.backward() # calculate the gradient on the loss
             model_optimizer.step() # get the optimizer
             model_optimizer.zero_grad() # set optimizer weights to zero again
-            loss_hist_train[epoch] += loss.item() # record the loss
-            correct = ((pred>=0.5).int() == y_batch).float() # record the accuracy
+            
+            # store the loss on this batch
+            loss_hist_train[epoch] += loss.item()
+            
+            # calculate and store the accuracy on this batch
+            correct = ((pred>=0.5).float() == y_batch).float()
             acc_hist_train[epoch] += correct.mean().float().item()
         
-        # get the mean training loss and accuracy across batches per epoch
-        loss_hist_train[epoch] /= train_samples
-        acc_hist_train[epoch] /= train_samples/len(y_batch)
+        # get the average training loss and accuracy per batch in this epoch
+        loss_hist_train[epoch] /= len(train_dl)
+        acc_hist_train[epoch] /= len(train_dl)
         
         # preditc and evaluate on validation set
         pred = model(x_valid)[:, 0]
         pred = pred.reshape(pred.shape[0])
         loss = loss_function(pred, y_valid.float())
         loss_hist_val[epoch] += loss.item()
-        correct = ((pred>=0.5).int() == y_valid).float()
+        correct = ((pred>=0.5).float() == y_valid).float()
         acc_hist_val[epoch] += correct.mean().float().item()
 
         # log:
@@ -211,4 +205,3 @@ def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, lo
 
 
     return loss_hist_train, acc_hist_train, loss_hist_val, acc_hist_val
-
