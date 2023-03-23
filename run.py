@@ -1,11 +1,10 @@
 import sqlite3
-import os
 
+import torch
 from transformers import pipeline
 
 from jpap import preprocessing as jpp
-from jpap import translationPipeline as jtp
-from jpap import industryPipeline as jip
+from jpap.tpl import ENDetectionModel
 
 #### connect to JPOD and retrieve data
 JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
@@ -19,9 +18,19 @@ for lan in ["eng", "ger", "fre", "ita"]:
 
 #### choose a posting and tokenize its text to sentences:
 postings_lan["eng"]["company_name"][150:200]
-n = 150
+n = 133
 company = postings_lan["eng"]["company_name"][n]
 text = postings_lan["eng"]["job_description"][n]
+
+#### detect english language
+from jpap.tpl.endetect import ENDetectionModel, ENDetectTokenizer
+tokenizer = ENDetectTokenizer().load_vocabulary()
+model = ENDetectionModel().load_state_dict()
+n = 27
+text = postings_lan["ita"]["job_description"][n]
+tokenized_text = tokenizer.tokenize(text = text, sequence_length=50, padding_idx=0)
+tokenized_text = torch.tensor([tokenized_text], dtype=torch.int32)
+print("The postings text is in english: ", (model(tokenized_text)[:, 0] > 0.5).item())
 
 #### A) ASSIGN POSTINGS TO SECTORS-------------------
 from scripts.itp import industry as ipl

@@ -2,4 +2,4 @@
 # paper: https://arxiv.org/pdf/2010.11125.pdf 
 # code: https://github.com/kadirnar/Multilingual-Translation 
 # model: https://huggingface.co/facebook/m2m100_418M 
-from .endetect import ENDetectionTrainLoader, ENDetectionModel
+from .endetect import ENDetectionProcessor, ENDetectionModel, ENDetectTokenizer

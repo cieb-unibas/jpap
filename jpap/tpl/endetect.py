@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from torch.utils.data import Dataset
 
-class ENDetectionTrainLoader():
+class ENDetectionProcessor():
     def __init__(
             self, dataset_path: str = "C:/Users/matth/Documents/cieb/endetect_train.csv", 
             target: str = "en", target_share : float = None, seed: int = 10032023
@@ -18,36 +18,31 @@ class ENDetectionTrainLoader():
         self.target_share = target_share
         self.seed = seed
         self.dataset = self.get_data()
+        self.tokenizer = ENDetectTokenizer()
     
-    def get_data(self):
-
+    def get_data(self, target_share = None):
         dat = pd.read_csv(filepath_or_buffer = self.dataset_path)
-
+        if target_share:
+            self.target_share = target_share
         if self.target_share:
             df_target_group = dat.loc[dat.labels == self.target, :].reset_index(drop=True)
             n_target_group = len(df_target_group)
-            
             df_other_group = dat.loc[dat.labels != self.target, :].reset_index(drop=True)
-            n_other_group = round(n_target_group / self.target_share)
+            n_other_group = round((1-target_share) * (n_target_group / target_share))
             random.seed(self.seed)
             df_other_group = df_other_group.iloc[random.choices(range(len(df_other_group)), k=n_other_group), :].reset_index(drop=True)
-
             dat = pd.concat([df_target_group, df_other_group], axis = 0)
-
         return dat
     
     def split(self, test_size):
         assert isinstance(self.dataset, pd.DataFrame), "Convert dataset to a pandas.DataFrame object."
-        # determin number of samples
         if isinstance(test_size, float):
             test_size = round(len(self.dataset) * test_size)
             n_val = test_size
         else:
             n_val = test_size
-        # shuffle
         random.seed(self.seed)
         self.dataset = self.dataset.sample(frac = 1).reset_index(drop = True) # shuffle
-        # split
         df = {}
         df["test"] = self.dataset.iloc[:test_size, :].reset_index(drop=True)
         df["validation"] = self.dataset.iloc[test_size : test_size + n_val, :].reset_index(drop=True)
@@ -56,48 +51,19 @@ class ENDetectionTrainLoader():
         return self
 
     def label(self, partition, ouput_mode = "np"):
-        self.label_dict = {"rest": 0, self.target: 1}
+        self.label_dict = {"other": 0, self.target: 1}
         out = [1 if x == self.target else 0 for x in self.dataset[partition]["labels"]]
         if ouput_mode == "pt":
             return torch.tensor(out, dtype=torch.int)
         else:
             return out
-        
-    def split_to_tokens(self, text):
-        cleaned_text = "".join([c for c in text if c not in string.punctuation and c not in string.digits])
-        tokenized_text = cleaned_text.lower().split()
-        return tokenized_text
 
-    def vocab(self, max_tokens: int = 50000, partition: str = None):
-        if partition:
-            texts = self.dataset[partition]["text"]
-        else:
-            texts = self.dataset["text"]
-        counter = {}
-        for text in texts:
-            tokens = self.split_to_tokens(text)
-            for token in tokens:
-                if token not in counter:
-                    counter[token] = 0
-                counter[token] += 1
-        sorted_tokens = sorted(counter.items(), key = lambda x: x[1], reverse=True)
-        sorted_tokens = [c[0] for c in sorted_tokens]
-        if max_tokens:
-            sorted_tokens = sorted_tokens[:max_tokens-2]
-        sorted_tokens = ["<pad>", "<unk>"] + sorted_tokens
-        self.vocabulary = {token: i for i, token in enumerate(sorted_tokens)}
-        if partition:
-            print("Vocabulary specified based on %s partition" % partition)
-        else:
-            print("Vocabulary specified based on full dataset.")
+    def vocab(self, max_tokens, texts):
+        self.tokenizer.set_vocabulary(max_tokens=max_tokens, texts = texts)
         return self
 
-    def tokenize(self, text):
-        processed_text = [self.vocabulary[t] if t in self.vocabulary.keys() else 1 for t in self.split_to_tokens(text)]
-        return processed_text
-
-    def tokenize_sequence(self, partition: str, output_mode: str, stratified_data = False, max_len: int = None):
-        tokenized_sequence = [self.tokenize(text) for text in self.dataset[partition]["text"]]
+    def tokenize_sequence(self, partition: str, output_mode: str, max_len: int = None):
+        tokenized_sequence = [self.tokenizer.tokenize(text) for text in self.dataset[partition]["text"]]
         if max_len == None:
             max_len = max([len(x) for x in tokenized_sequence])
         tokenized_sequence = [x if len(x) <= max_len else x[:max_len] for x in tokenized_sequence]
@@ -116,6 +82,45 @@ class ENDetectionTrainLoader():
             texts = self.tokenize_sequence(partition=partition, output_mode=output_mode, max_len=max_len)
             )
         return df       
+
+class ENDetectTokenizer():
+    def __init__(self) -> None:
+        return
+
+    def split_to_tokens(self, text):
+        cleaned_text = "".join([c for c in text if c not in string.punctuation and c not in string.digits])
+        tokenized_text = cleaned_text.lower().split()
+        return tokenized_text
+    
+    def load_vocabulary(self, vocabulary):
+        self.vocabulary = vocabulary
+   
+    def set_vocabulary(self, texts, max_tokens: int = 50000):
+        self.max_tokens = max_tokens
+        counter = {}
+        for text in texts:
+            tokens = self.split_to_tokens(text)
+            for token in tokens:
+                if token not in counter:
+                    counter[token] = 0
+                counter[token] += 1
+        sorted_tokens = sorted(counter.items(), key = lambda x: x[1], reverse=True)
+        sorted_tokens = [c[0] for c in sorted_tokens]
+        if self.max_tokens:
+            sorted_tokens = sorted_tokens[:self.max_tokens-2]
+        sorted_tokens = ["<pad>", "<unk>"] + sorted_tokens
+        self.vocabulary = {token: i for i, token in enumerate(sorted_tokens)}
+        print("Vocabulary specified")
+    
+    def tokenize(self, text, sequence_length: int = None, padding_idx: int = 0):
+        processed_text = [self.vocabulary[t] if t in self.vocabulary.keys() else 1 for t in self.split_to_tokens(text)]
+        if sequence_length != None:
+            if len(processed_text) > sequence_length:
+                processed_text = processed_text[:sequence_length]
+            else:
+                n_padding = sequence_length - len(processed_text)
+                processed_text = processed_text + ([padding_idx] * n_padding)
+        return processed_text
 
 class ENDetectDataset(Dataset):
     def __init__(self, labels, texts) -> None:
@@ -162,6 +167,11 @@ class ENDetectionModel(nn.Module):
         for f in self.model_list:
             x = f(x)
         return x
+    
+    def predict(self, x):
+        pred = self(x)[:, 0]
+        return pred
+
 
 def ENDetectTrain(model, epochs, train_dl, x_valid, y_valid, model_optimizer, loss_function):
     # initialize the losses and accuracies
