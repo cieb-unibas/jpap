@@ -3,8 +3,12 @@ import os
 import sys
 import sqlite3
 
+from transformers import pipeline
+
 HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
+#HOME = os.getcwd()
 sys.path.append(HOME)
+
 import jpap
 
 try:
@@ -13,11 +17,11 @@ except:
     JPOD_CON = sqlite3.connect("C:/Users/nigmat01/Desktop/jpod_test.db")
 
 
-def storeat(home_dir = HOME, file_name = "industry_train.csv"):
+def _storeat(home_dir = HOME, file_name = "industry_train.csv"):
     dataDir = home_dir + "/data/created/" + file_name
     return dataDir
 
-def _load_labels(label_type = "companies"):
+def _load_labels(label_type = "companies", home_dir = HOME):
     """
     Loads company names or company name patterns that are labelled to industries.
 
@@ -33,7 +37,7 @@ def _load_labels(label_type = "companies"):
         A dictionary with keys indicating industry labels and values representing company names or company name patterns.
     """
     assert label_type in ["companies", "patterns"], "`type` must be one of `companies` or `patterns`."
-    label_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir, "data", "raw"))
+    label_path = os.path.abspath(os.path.join(home_dir, "data", "raw"))
     file = os.path.join(label_path, "industry_label_" + label_type + ".json")
     with open(file, "r", encoding = "UTF-8") as f:
         labels = json.load(f)
@@ -52,7 +56,7 @@ def _name_pattern_query(patterns):
     str:
         A string in a SQL query format.
     """
-    like_statement = jpap.utils.sql_like_statement(patterns = patterns)
+    like_statement = jpap.sql_like_statement(patterns = patterns)
     
     query_string = """
     SELECT company_name
@@ -82,7 +86,23 @@ def _employers_from_patterns(con, query):
     employer_list = [c[0] for c in employer_list]
     return employer_list
 
-def create_training_dataset(con, save = False, peak = False):
+def _extract_employer_description(df, zsc: bool = False):
+    """
+    Extract sentences of a posting that describe the employer based on
+    employer name and/or zero-shot sentence classifier.
+    """
+    # extract description by company name
+    extractor = jpap.DescExtractor(postings = df["job_description"])
+    extractor.by_name(employer_names = df["company_name"])
+    # enrich extracted description using zsc
+    if zsc:
+        classifier = pipeline("zero-shot-classification", "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli")
+        desc_targets = ["who we are", "who this is", "industry or sector"]
+        extractor.by_zsc(classifier=classifier, targets = desc_targets)
+    df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
+    return df
+
+def create_training_dataset(con, save = False, peak = False, use_zsc = False):
     """
     Creates a dataset of labelled job postings with respect to industries.
     
@@ -107,27 +127,32 @@ def create_training_dataset(con, save = False, peak = False):
         else:
             labelled_employers[i] = pattern_companies
 
-    # extract all (english) postings from these employers:
-    employer_postings = jpap.preprocessing.get_company_postings(
-        con = con, companies = jpap.utils.dict_items_to_list(labelled_employers), 
-        institution_name = True, language = "eng")
-    employer_postings = employer_postings
-
-    # TO DO: double check whether language is english using: https://huggingface.co/papluca/xlm-roberta-base-language-detection
-    
+    # extract all postings from these employers:
+    employer_postings = jpap.get_company_postings(
+        con = con, companies = jpap.dict_items_to_list(labelled_employers), 
+        institution_name = True)
+    employer_postings = employer_postings   
 
     # add the industry labels:
     employer_postings["industry"] = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c][0])
-    print("********** Extracted %d postings from the database.**********" % len(employer_postings))
+
+    # extract employer description:
+    if use_zsc:
+        print("Extracting employer descriptions by name-searches AND zero-shot sentence classifier.")
+    else:
+        print("Extracting employer descriptions by name-searches only.")
+    employer_descriptions = _extract_employer_description(df = employer_postings, zsc = use_zsc)
+    employer_descriptions = employer_descriptions.dropna().reset_index(drop=True)[["employer_description", "industry"]]
+    print("********** Extracted employer descriptions for %d postings from the database.**********" % len(employer_descriptions))
 
     # save and return
     if save:
-        savefile = storeat()
-        employer_postings.to_csv(savefile, index = False)
+        savefile = _storeat()
+        employer_descriptions.to_csv(savefile, index = True)
         print("Training dataset saved to %s" % savefile)
     if peak:
-        return print(employer_postings[["job_description", "company_name", "industry"]].head())
+        return print(employer_descriptions.head())
 
 
 if __name__ == "__main__":
-    create_training_dataset(con = JPOD_CON, save = True, peak=True)
+    create_training_dataset(con = JPOD_CON, save = True, peak=True, use_zsc = True)

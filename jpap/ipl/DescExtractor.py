@@ -1,7 +1,5 @@
 import nltk
 
-from jpap.tpl.detect_language import detect_language
-
 class DescExtractor(object):
     def __init__(self, postings):
         self.postings = postings
@@ -11,27 +9,37 @@ class DescExtractor(object):
         self.tokenized_input = self.tokenize_all()
     
     def tokenize_all(self):
+        """
+        Tokenize all postings text by splitting them up into sentences.
+        """
         tokenized_input = [nltk.sent_tokenize(p) for p in self.input]
         return tokenized_input 
     
-    def update(self, tokenized_posting, employer_description):
+    def _update(self, tokenized_posting, employer_description):
+        """
+        Update a postings text to determine what part of the original text is a candidate for feature extraction.
+        """
         updated_posting = [s for s in tokenized_posting if s not in nltk.sent_tokenize(employer_description)]
         updated_posting = " ".join(updated_posting)
         return updated_posting
 
-    def update_all(self):
+    def _update_all(self):
         """
+        Update all text inputs to determine what part of the original text is a candidate for feature extraction.
         """
         if not self.retrieved_by:
             return None
         else:
             updated_postings = []
             for p, d in zip(self.tokenized_input, self.employer_desc):
-                updated_posting = self.update(p, d)
+                updated_posting = self._update(p, d)
                 updated_postings.append(updated_posting)
             self.tokenized_input = self.tokenize_all()
 
-    def assign_empdesc(self, desc: str, idx: int) -> None:
+    def _assign_empdesc(self, desc: str, idx: int) -> None:
+        """
+        Stores retrieved employer descriptions.
+        """
         if len(self.employer_desc) > idx:
             if len(self.employer_desc[idx]) > 0:
                 self.employer_desc[idx] += " " + desc
@@ -40,48 +48,40 @@ class DescExtractor(object):
         else:
             self.employer_desc.append(desc)
 
-    def log_retrieved(self, by: str) -> None:
+    def _log_retrieved(self, by: str) -> None:
+        """
+        Logger indicating by which methods descriptions have been extracted.
+        """
         self.retrieved_by += [by]
         if len(self.retrieved_by) > 1:
             self.retrieved_by = list(set(self.retrieved_by))
     
     def by_name(self, employer_names):
         """
+        Extract all sentences from job postings that feature the company name.
         """
         assert len(self.postings) == len(employer_names), "`employer_names` must have the same length as the number of postings supplied to `DescEctractor()`."
         self.employer_names = employer_names
-        self.update_all()
+        self._update_all()
         for i, t in enumerate(self.tokenized_input):
             employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
-            self.assign_empdesc(desc = employer_desc, idx = i)
-        self.log_retrieved(by = "name")
-
-    def _posting_language(self, model_id_or_path: str = "juliensimon/xlm-v-base-language-id", n_tokens: int = 20):
-        texts = [" ".join(i[0].split(" ")[:n_tokens]).lower() for i in self.tokenized_input]
-        languages = detect_language(text = texts, model_id_or_path = model_id_or_path)
-        self.languages = languages
-        print("Posting languages labelled.")
-
-    def _multilang_label_dict(self, labels, translator, source_language = "en"):
-        """"
-        Translate chosen labels of a certain language to all languages present in the dataset using a translator.
-                ---> Test if this is even necessary...
+            self._assign_empdesc(desc = employer_desc, idx = i)
+        self._log_retrieved(by = "name")
+   
+    def by_zsc(self, classifier, targets: list[str], excluding_classes: list[str] = None, log_number: int = 50):
         """
-        d = {}
-        for lan in list(set(self.languages)):
-            d[lan] = [translator.translate(text = label, dest = lan, src = source_language).text for label in labels]
-        return d
-    
-    def by_zsc(self, classifier, targets, target_translator):
+        Extract all sentences from job postings that are labelled by a zero-shot-classifier to
+        one or more target classes `targets`.
         """
-        """
-        self.update_all()
-        labels = targets + ["other"]
-        label_dict = self._multilang_label_dict(labels = labels, source_language="en", translator=target_translator)
+        self._update_all()
+        excluded_classes = ["address", "benefits", "other"]
+        if excluding_classes:
+            excluded_classes = excluding_classes
+        labels = targets + excluded_classes
         for i, t in enumerate(self.tokenized_input):
-            employer_sentences = [classifier(s, candidate_labels = label_dict[self.language[i]]) for s in t]
+            employer_sentences = [classifier(s, candidate_labels = labels) for s in t]
             employer_desc = " ".join([s["sequence"] for s in employer_sentences if s["labels"][0] in targets])
-            self.assign_empdesc(desc = employer_desc, idx = i)
-        self.log_retrieved(by = "zsc")
-
-texts[22]
+            self._assign_empdesc(desc = employer_desc, idx = i)
+            if i % log_number == 0:
+                print("Applied zero-shot extration to %d postings" % i)
+        self._log_retrieved(by = "zsc")
