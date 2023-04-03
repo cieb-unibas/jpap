@@ -2,6 +2,7 @@ import random
 import os
 import sys
 
+from googletrans import Translator
 from transformers import AutoTokenizer, AutoModel, pipeline
 import pandas as pd
 
@@ -36,8 +37,10 @@ def extract_employer_description(zsc: bool = False) -> pd.DataFrame:
     extractor.by_name(employer_names = df["company_name"])
     # enrich extracted description using zsc
     if zsc:
+        extractor.posting_language()
+        translator = Translator()
         classifier = pipeline("zero-shot-classification", "facebook/bart-large-mnli")
-        extractor.by_zsc(classifier=classifier, targets = ["who we are", "who this is"])
+        extractor.by_zsc(classifier=classifier, targets = ["who we are", "who this is"], target_translator = translator)
     df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
     return df
 
