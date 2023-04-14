@@ -86,19 +86,22 @@ def _employers_from_patterns(con, query):
     employer_list = [c[0] for c in employer_list]
     return employer_list
 
-def _extract_employer_description(df, zsc: bool = False):
+def _extract_employer_description(df, zsc: bool = False, path_to_model = None):
     """
     Extract sentences of a posting that describe the employer based on
     employer name and/or zero-shot sentence classifier.
     """
     # extract description by company name
     extractor = jpap.DescExtractor(postings = df["job_description"])
-    extractor.by_name(employer_names = df["company_name"])
+    extractor.sentences_by_name(employer_names = df["company_name"])
     # enrich extracted description using zsc
     if zsc:
-        classifier = pipeline("zero-shot-classification", "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli")
+        if path_to_model:
+            classifier = pipeline("zero-shot-classification", path_to_model)
+        else:
+            classifier = pipeline("zero-shot-classification", "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli")
         desc_targets = ["who we are", "who this is", "industry or sector"]
-        extractor.by_zsc(classifier=classifier, targets = desc_targets)
+        extractor.sentences_by_zsc(classifier=classifier, targets = desc_targets)
     df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
     return df
 
@@ -148,7 +151,7 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
     # save and return
     if save:
         savefile = _storeat()
-        employer_descriptions.to_csv(savefile, index = True)
+        employer_descriptions.to_csv(savefile, index = False)
         print("Training dataset saved to %s" % savefile)
     if peak:
         return print(employer_descriptions.head())

@@ -56,7 +56,7 @@ class DescExtractor(object):
         if len(self.retrieved_by) > 1:
             self.retrieved_by = list(set(self.retrieved_by))
     
-    def by_name(self, employer_names):
+    def sentences_by_name(self, employer_names):
         """
         Extract all sentences from job postings that feature the company name.
         """
@@ -68,16 +68,19 @@ class DescExtractor(object):
             self._assign_empdesc(desc = employer_desc, idx = i)
         self._log_retrieved(by = "name")
    
-    def by_zsc(self, classifier, targets: list[str], excluding_classes: list[str] = None, log_number: int = 50):
+    def sentences_by_zsc(
+            self, classifier, targets: list[str], 
+            excluding_classes: list[str] = ["address", "benefits"], 
+            log_number: int = 50
+            ):
         """
         Extract all sentences from job postings that are labelled by a zero-shot-classifier to
         one or more target classes `targets`.
         """
         self._update_all()
-        excluded_classes = ["address", "benefits", "other"]
+        labels = targets + ["other"]
         if excluding_classes:
-            excluded_classes = excluding_classes
-        labels = targets + excluded_classes
+            labels += excluding_classes
         for i, t in enumerate(self.tokenized_input):
             employer_sentences = [classifier(s, candidate_labels = labels) for s in t]
             employer_desc = " ".join([s["sequence"] for s in employer_sentences if s["labels"][0] in targets])
