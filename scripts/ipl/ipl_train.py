@@ -40,29 +40,50 @@ def load_xlm_pretrained(path_to_model = None):
         model = AutoModelForSequenceClassification.from_pretrained("xlm-roberta-base")
     return tokenizer, model
 
-
-
 #### load xlm-roberta-base-classifier:
 tokenizer, model = load_xlm_pretrained()
 
-#### load and tokenize the input and label the targets
+#### load and split training datat
 df = load_labelled()
-
-# labels
-labels, label_dict = encode_labels(inputs = df["industry"], return_label_dict = True)
-labels = torch.tensor(labels, dtype=torch.int32)
-# features
-inputs = tokenizer(
-    df["employer_description"].to_list(), return_tensors="pt", 
-    truncation=True, max_length=128, padding=True
-    )
-# => does not seem right..
-
-#### split data to training and testing sets
 df.groupby(["industry"])["industry"].count().sort_values(ascending=False)
 
-#### train/fine-tune classifier for industry classification
+# !!! => do this using sklearn... !!!
+
+#### tokenize the input and label the targets
+# targets
+n = 10
+labels, label_dict = encode_labels(inputs = df["industry"], return_label_dict = True)
+labels = torch.tensor(labels[:n], dtype=torch.int32)
+
+# features
+inputs = tokenizer(
+    df["employer_description"][:n].to_list(), return_tensors="pt", 
+    truncation=True, max_length=128, padding=True
+    )
+
+#### train/fine-tune xlm-roberta-base for industry classification
 
 #### evaluate the fine-tuned classifier:
 
 #### save the fine-tuned classifier
+
+
+if __name__ == "__main__":
+    # load data
+    df = load_labelled()
+
+    # split data
+
+    # load classifier
+    
+    # tokenize data
+
+    # fine-tune
+    # (a) train only
+    # (b) train & validation
+
+    # evaluate
+    # (a) on eval
+    # (b) on test
+
+    # if final: save
