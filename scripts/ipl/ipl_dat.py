@@ -6,15 +6,9 @@ import sqlite3
 from transformers import pipeline
 
 HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
-#HOME = os.getcwd()
 sys.path.append(HOME)
 
 import jpap
-
-try:
-    JPOD_CON = sqlite3.connect("C:/Users/matth/Desktop/jpod_test.db")
-except:
-    JPOD_CON = sqlite3.connect("C:/Users/nigmat01/Desktop/jpod_test.db")
 
 
 def _storeat(home_dir = HOME, file_name = "industry_train.csv"):
@@ -158,4 +152,6 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
 
 
 if __name__ == "__main__":
+    DB_PATH = "..."
+    JPOD_CON = sqlite3.connect(DB_PATH)
     create_training_dataset(con = JPOD_CON, save = True, peak=True, use_zsc = True)
