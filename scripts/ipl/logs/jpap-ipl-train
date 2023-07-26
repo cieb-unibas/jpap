@@ -1,0 +1,33 @@
+Training the model on cuda over 5 epochs in batches of size 16.
+Number of training samples: 248
+Number of validation samples: 83
+Number of testing samples: 59
+Baseline accuracies for the training dataset:
+ ZeroR: 0.198
+ RandomGuessing: 0.004
+Epooch 1: 1/16 data batches processed | Training time batch: 0 seconds
+Epooch 1: 6/16 data batches processed | Training time batch: 0 seconds
+Epooch 1: 11/16 data batches processed | Training time batch: 0 seconds
+Epooch 1: 16/16 data batches processed | Training time batch: 0 seconds
+Epoch 1/5 | Training Accuracy: 0.137 | Validation Accuracy: 0.120 | Training time epoch: 0.036 minutes
+Epooch 2: 1/16 data batches processed | Training time batch: 0 seconds
+Epooch 2: 6/16 data batches processed | Training time batch: 0 seconds
+Epooch 2: 11/16 data batches processed | Training time batch: 0 seconds
+Epooch 2: 16/16 data batches processed | Training time batch: 0 seconds
+Epoch 2/5 | Training Accuracy: 0.339 | Validation Accuracy: 0.361 | Training time epoch: 0.026 minutes
+Epooch 3: 1/16 data batches processed | Training time batch: 0 seconds
+Epooch 3: 6/16 data batches processed | Training time batch: 0 seconds
+Epooch 3: 11/16 data batches processed | Training time batch: 0 seconds
+Epooch 3: 16/16 data batches processed | Training time batch: 0 seconds
+Epoch 3/5 | Training Accuracy: 0.589 | Validation Accuracy: 0.663 | Training time epoch: 0.026 minutes
+Epooch 4: 1/16 data batches processed | Training time batch: 0 seconds
+Epooch 4: 6/16 data batches processed | Training time batch: 0 seconds
+Epooch 4: 11/16 data batches processed | Training time batch: 0 seconds
+Epooch 4: 16/16 data batches processed | Training time batch: 0 seconds
+Epoch 4/5 | Training Accuracy: 0.766 | Validation Accuracy: 0.687 | Training time epoch: 0.026 minutes
+Epooch 5: 1/16 data batches processed | Training time batch: 0 seconds
+Epooch 5: 6/16 data batches processed | Training time batch: 0 seconds
+Epooch 5: 11/16 data batches processed | Training time batch: 0 seconds
+Epooch 5: 16/16 data batches processed | Training time batch: 0 seconds
+Epoch 5/5 | Training Accuracy: 0.859 | Validation Accuracy: 0.771 | Training time epoch: 0.026 minutes
+Training finished.

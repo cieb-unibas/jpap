@@ -1,0 +1,19 @@
+Current directory is:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpap
+Extracting employer descriptions by name-searches AND zero-shot sentence classifier.
+Applied zero-shot extration to 0 postings
+Applied zero-shot extration to 50 postings
+Applied zero-shot extration to 100 postings
+Applied zero-shot extration to 150 postings
+Applied zero-shot extration to 200 postings
+Applied zero-shot extration to 250 postings
+Applied zero-shot extration to 300 postings
+Applied zero-shot extration to 350 postings
+Applied zero-shot extration to 400 postings
+********** Extracted employer descriptions for 390 postings from the database.**********
+Training dataset saved to /scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpap/data/created/industry_train.csv
+                                employer_description                                           industry
+0  Credit Suisse offers you the ideal environment...                            financial and insurance
+1  You'll also be responsible for validating the ...                      information and communication
+2  Description du poste Coop hat den Anspruch, di...                        wholesale and retail stores
+3  Our property boasts 250 newly renovated rooms ...  accommodation, hotel, restaurants and food ser...
+4  Am Hauptsitz in Luzern stellt ein erfahrenes u...  public administration and international organi...

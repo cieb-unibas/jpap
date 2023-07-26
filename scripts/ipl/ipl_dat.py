@@ -3,15 +3,16 @@ import os
 import sys
 import sqlite3
 
-from transformers import pipeline, AutoTokenizer, AutoModel
+from transformers import pipeline
 
+print("Current directory is: ", os.getcwd())
 JPAP_HOME = os.getcwd()
-
 sys.path.append(JPAP_HOME)
+
 import jpap
 
 def _storeat(home_dir = JPAP_HOME, file_name = "industry_train.csv"):
-    dataDir = os.path.join(home_dir,"/data/created/", file_name)
+    dataDir = os.path.join(home_dir,"data/created/", file_name)
     return dataDir
 
 def _load_labels(label_type = "companies", home_dir = JPAP_HOME):
@@ -86,8 +87,8 @@ def _extract_employer_description(df, zsc = False, model = "multilingual-MiniLMv
     Extract sentences of a posting that describe the employer based on
     employer name and/or zero-shot sentence classifier.
     """
-    # extract description by company name
     extractor = jpap.DescExtractor(postings = df["job_description"])
+    # extract description by company name
     extractor.sentences_by_name(employer_names = df["company_name"])
     # enrich extracted description using zsc
     if zsc:

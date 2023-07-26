@@ -103,7 +103,7 @@ def evaluate_finetuned(model, eval_loader, device):
     acc = float(correct_samples) / n_samples
     return acc
 
-def finetune(model, n_epochs : int, train_loader, eval_loader, device : str):
+def finetune(model, n_epochs : int, train_loader, eval_loader, device : str, return_finetuned_model = True):
     """
     Finetune a certain model using a training and evaluation pipeline.
     """
@@ -127,21 +127,14 @@ def finetune(model, n_epochs : int, train_loader, eval_loader, device : str):
             loss = outputs["loss"]
             n_samples += y.size(0)
             correct_samples += (torch.argmax(outputs["logits"], dim = 1) == y).sum().item()
-            # clean up gpu memory
-            del x
-            del y
-            del mask
-            del outputs
-            torch.cuda.empty_cache()
-            # update weights
+            # gradient calculation and update weights
             optim.zero_grad()
             loss.backward()
             optim.step()
-            del loss
             # logs
             duration = time.time() - batch_start_time
             if i % 5 == 0:
-                print("%d/%d data batches processed | Training time batch: %d seconds" % (i+1, len(train_loader), duration))
+                print("Epooch %d: %d/%d data batches processed | Training time batch: %d seconds" % (epoch+1, i+1, len(train_loader), duration))
 
         # evaluate
         duration = datetime.timedelta(seconds = time.time() - epoch_start_time).total_seconds() / 60
@@ -149,25 +142,19 @@ def finetune(model, n_epochs : int, train_loader, eval_loader, device : str):
         val_acc = evaluate_finetuned(model = model, eval_loader = eval_loader, device = device)
         print("Epoch %d/%d | Training Accuracy: %.3f | Validation Accuracy: %.3f | Training time epoch: %.3f minutes" % (epoch + 1, n_epochs, train_acc, val_acc, duration))
 
-    print("Training finished. Returning fine-tuned model")
-    return model
-
-# memory run-out
-# https://www.kaggle.com/getting-started/140636
-# https://stackoverflow.com/questions/63145729/how-to-make-sure-pytorch-has-deallocated-gpu-memory
-# torch.backends.cudnn.deterministic = True
-# torch.cuda.empty_cache()
-# os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:64"
-
-# => another option:
-# import gc
-# gc.collect()
-# torch.cuda.empty_cache()
-
-# could apparently also be an incompatible cuda-pytorch issue
-# https://stackoverflow.com/questions/54374935/how-to-fix-this-strange-error-runtimeerror-cuda-error-out-of-memory
+    if return_finetuned_model:
+        print("Training finished. Returning fine-tuned model")
+        return model
+    else:
+        print("Training finished.")
 
 if __name__ == "__main__":
+    
+    # training parameters:
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    BATCH_SIZE = 16
+    EPOCHS = 5
+    print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
     # load data & split data
     df = load_labelled()
@@ -180,18 +167,13 @@ if __name__ == "__main__":
 
     # load encoder, tokenizer and model
     le = get_label_encoder(y = df["industry"])
-    tokenizer, model = load_xlm_pretrained(n_targets= len(le.classes_))
-    print("Label encoder, pre-trained tokenizer and pre-trained model checkpoint loaded.")
+    tokenizer, model = load_xlm_pretrained(path_to_model = "../hf_models/xlm-roberta-base", n_targets = len(le.classes_))
 
     # tokenize the data
-    le = get_label_encoder(y = df["industry"])
     x_train, x_val, x_test = text_tokenizer(text_partitions = [x_train, x_val, x_test])
-    y_train, y_val, y_test = encode_labels(label_encoder=le, y = y_train)\
-        , encode_labels(label_encoder=le, y = y_val)\
-        , encode_labels(label_encoder=le, y = y_test) 
+    y_train, y_val, y_test = encode_labels(label_encoder=le, y = y_train), encode_labels(label_encoder=le, y = y_val), encode_labels(label_encoder=le, y = y_test) 
 
     # data pipelines
-    BATCH_SIZE = 16
     train_dl = DataLoader(
         IndustryClassificationDataset(targets = y_train, texts = x_train),
         batch_size = BATCH_SIZE, shuffle = True
@@ -201,17 +183,19 @@ if __name__ == "__main__":
         batch_size = BATCH_SIZE, shuffle = False
         )
 
+    # Baseline accuracies:
+    zero_r = max(pd.Series(y_train).value_counts() / len(y_train))
+    random_guessing = sum(pd.Series(y_train).value_counts() / len(y_train) ** 2)
+    print("Baseline accuracies for the training dataset:\n ZeroR: %4.3f\n RandomGuessing: %4.3f" % (zero_r, random_guessing))
+
     # configurations for finetuning the model
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    EPOCHS = 2
     model.to(DEVICE)
     model.train()
     optim = torch.optim.Adam(model.parameters(), lr=5e-5)
-    print("Training model with %d batches per epoch and %d epochs" % (len(train_dl), EPOCHS))
     finetuned_model = finetune(
         model = model, n_epochs = EPOCHS, 
         train_loader = train_dl, eval_loader = val_dl, 
-        device= DEVICE
+        device= DEVICE, return_finetuned_model=False
         )
 
     # if final: retrain on everything and save
