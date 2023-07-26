@@ -1,12 +1,21 @@
 {
-    "accommodation, hotel, restaurants and food service": ["hotel ", "restaurant", " bar "],
-    "financial and insurance": [" kantonalbank ", " versicherung "],
-    "real estate": ["immobilien"],
-    "legal and consulting": ["anwälte", " anwalt", "advokat", " recht ", "staatsanwalt"],
-    "research and academia": ["universität", "hochschule", "fachhochschule"],
-    "public administration and international organizations": ["bundesverwaltung", "kanton", "departement ", "bundesamt ", "direktion "], 
-    "education, teaching and schools": ["kantonsschule", "gymnasium", "orientierungsschule", "primarschule", "sprachschule"],
-    "medicine, health and hospital": ["universitätsspital", "kantonsspital", "spital", "arztpraxis", "altersheim", "inselspital", "insel "],
-    "arts, entertainment and recreation": ["kino", "konzert", "schauspiel", "oper", "theater", "museum", "gallerie"],
-    "newspapers, television and media industry": ["zeitung"]
+    "accommodation, hotel, restaurants and food service": ["hotel ", "restaurant"],
+    "financial and insurance": [" kantonalbank", " versicherung", "insurance"],
+    "real estate": ["immobilien", "real estate"],
+    "legal and consulting": ["anwälte", " anwalt", "advokat", " recht ", "staatsanwalt", "lawyer"],
+    "research and academia": ["universität", "hochschule", "fachhochschule", "university", "college", "institute "],
+    "public administration and international organizations": ["bundesverwaltung", "kanton", "departement ", "bundesamt ", "direktion ", "ministry", "ministerium"], 
+    "education, teaching and schools": [
+        "kantonsschule", "gymnasium", "orientierungsschule", "primarschule", "sprachschule", 
+        "high school", "elementary school", "language school", "middle school", "mittelschule", "realschule"
+    ],
+    "medicine, health and hospital": [
+        "universitätsspital", "kantonsspital", "spital", "arztpraxis", "altersheim", "inselspital", "insel gruppe",
+        "hospital", "clinic ", "klinik", "chirurgie"
+    ],
+    "arts, entertainment and recreation": [
+        "kino", "konzert", "schauspiel", "oper", "theater", "museum", "gallerie",
+        "cinema", "concert", "art gallery"
+    ],
+    "newspapers, television and media industry": ["zeitung", "newspaper", "television"]
 }
