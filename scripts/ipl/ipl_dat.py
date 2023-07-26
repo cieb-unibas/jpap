@@ -3,19 +3,18 @@ import os
 import sys
 import sqlite3
 
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModel
 
-HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
-sys.path.append(HOME)
+JPAP_HOME = os.getcwd()
 
+sys.path.append(JPAP_HOME)
 import jpap
 
-
-def _storeat(home_dir = HOME, file_name = "industry_train.csv"):
-    dataDir = home_dir + "/data/created/" + file_name
+def _storeat(home_dir = JPAP_HOME, file_name = "industry_train.csv"):
+    dataDir = os.path.join(home_dir,"/data/created/", file_name)
     return dataDir
 
-def _load_labels(label_type = "companies", home_dir = HOME):
+def _load_labels(label_type = "companies", home_dir = JPAP_HOME):
     """
     Loads company names or company name patterns that are labelled to industries.
 
@@ -80,7 +79,9 @@ def _employers_from_patterns(con, query):
     employer_list = [c[0] for c in employer_list]
     return employer_list
 
-def _extract_employer_description(df, zsc: bool = False, path_to_model = None):
+def _extract_employer_description(df, zsc = False, model = "multilingual-MiniLMv2-L6-mnli-xnli/",
+                                  path_to_models = os.path.abspath(os.path.join(JPAP_HOME, os.pardir, "hf_models/"))
+                                  ):
     """
     Extract sentences of a posting that describe the employer based on
     employer name and/or zero-shot sentence classifier.
@@ -90,8 +91,9 @@ def _extract_employer_description(df, zsc: bool = False, path_to_model = None):
     extractor.sentences_by_name(employer_names = df["company_name"])
     # enrich extracted description using zsc
     if zsc:
-        if path_to_model:
-            classifier = pipeline("zero-shot-classification", path_to_model)
+        if path_to_models:
+            model_path = os.path.join(path_to_models, model)
+            classifier = pipeline(task = "zero-shot-classification", model = model_path)
         else:
             classifier = pipeline("zero-shot-classification", "MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli")
         desc_targets = ["who we are", "who this is", "industry or sector"]
@@ -148,10 +150,10 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
         employer_descriptions.to_csv(savefile, index = False)
         print("Training dataset saved to %s" % savefile)
     if peak:
-        return print(employer_descriptions.head())
+        print(employer_descriptions.head())
 
 
 if __name__ == "__main__":
-    DB_PATH = "..."
+    DB_PATH = os.path.abspath(os.path.join(JPAP_HOME, os.pardir, "jpod_test.db"))
     JPOD_CON = sqlite3.connect(DB_PATH)
     create_training_dataset(con = JPOD_CON, save = True, peak=True, use_zsc = True)

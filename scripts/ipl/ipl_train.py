@@ -191,7 +191,7 @@ if __name__ == "__main__":
         , encode_labels(label_encoder=le, y = y_test) 
 
     # data pipelines
-    BATCH_SIZE = 32
+    BATCH_SIZE = 16
     train_dl = DataLoader(
         IndustryClassificationDataset(targets = y_train, texts = x_train),
         batch_size = BATCH_SIZE, shuffle = True
@@ -213,6 +213,5 @@ if __name__ == "__main__":
         train_loader = train_dl, eval_loader = val_dl, 
         device= DEVICE
         )
-    finetuned_model()
 
     # if final: retrain on everything and save
