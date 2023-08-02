@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#SBATCH --job-name=jpap-ipl-dat
+#SBATCH --job-name=jpap-ipl-train
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 
 #SBATCH --time=00:30:00
 #SBATCH --qos=30min
 
-#SBATCH --output=scripts/ipl/logs/jpap-ipl-dat
-#SBATCH --error=scripts/ipl/logs/jpap-ipl-dat_errors
+#SBATCH --output=scripts/ipl/logs/jpap-ipl-train
+#SBATCH --error=scripts/ipl/logs/jpap-ipl-train_errors
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=matthias.niggli@unibas.ch
 
@@ -23,4 +23,4 @@ cd "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpap/"
 source ../jpap-venv/bin/activate
 
 ## run .py script -----
-python scripts/ipl/ipl_dat.py
+python scripts/ipl/ipl_train.py

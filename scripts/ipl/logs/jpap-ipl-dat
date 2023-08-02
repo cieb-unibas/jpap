@@ -1,2 +1,28 @@
 Current directory is:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpap
 Extracting employer descriptions by name-searches AND zero-shot sentence classifier.
+Applied zero-shot extration to 0 postings
+Applied zero-shot extration to 50 postings
+Applied zero-shot extration to 100 postings
+Applied zero-shot extration to 150 postings
+Applied zero-shot extration to 200 postings
+Applied zero-shot extration to 250 postings
+Applied zero-shot extration to 300 postings
+Applied zero-shot extration to 350 postings
+Applied zero-shot extration to 400 postings
+Applied zero-shot extration to 450 postings
+Applied zero-shot extration to 500 postings
+Applied zero-shot extration to 550 postings
+Applied zero-shot extration to 600 postings
+Applied zero-shot extration to 650 postings
+Applied zero-shot extration to 700 postings
+Applied zero-shot extration to 750 postings
+Applied zero-shot extration to 800 postings
+Applied zero-shot extration to 850 postings
+********** Extracted employer descriptions for 829 postings from the database.**********
+Training dataset saved to /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv
+                                employer_description                       industry
+0  Credit Suisse offers you the ideal environment...        financial and insurance
+1  Dept of Counselor Education and Student Affair...          research and academia
+2  You'll also be responsible for validating the ...  information and communication
+3  Description du poste Coop hat den Anspruch, di...    wholesale and retail stores
+4  Für über 500 verschiedene Berufe suchen wir mo...     transportation and storage

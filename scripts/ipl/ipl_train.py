@@ -14,19 +14,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-def set_paths():
-    try:
-        HOME = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
-    except:
-        HOME = os.getcwd()
-    sys.path.append(HOME)
-    return HOME
-
-def load_labelled(n_postings : int = None, home_dir: str = set_paths()) -> pd.DataFrame:
+def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
     """
     Load n postings' employer descriptions that were manually labelled to industries.
     """
-    df = pd.read_csv(home_dir + "/data/created/industry_train.csv")
+    df = pd.read_csv(path)
     if n_postings:
         random.seed(1)
         out_postings = random.choices(range(len(df)), k = n_postings)
@@ -151,13 +143,14 @@ def finetune(model, n_epochs : int, train_loader, eval_loader, device : str, ret
 if __name__ == "__main__":
     
     # training parameters:
+    TRAIN_DAT = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv"
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     BATCH_SIZE = 16
     EPOCHS = 5
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
     # load data & split data
-    df = load_labelled()
+    df = load_labelled(path = TRAIN_DAT)
     print("Total number of samples in the dataset: ", len(df))
     print("Class distribution:")
     print(df.groupby(["industry"])["industry"].count().sort_values(ascending=False))
@@ -170,7 +163,10 @@ if __name__ == "__main__":
 
     # load encoder, tokenizer and model
     le = get_label_encoder(y = df["industry"])
-    tokenizer, model = load_xlm_pretrained(path_to_model = "../hf_models/xlm-roberta-base", n_targets = len(le.classes_))
+    tokenizer, model = load_xlm_pretrained(
+        path_to_model = "../hf_models/xlm-roberta-base", 
+        n_targets = len(le.classes_)
+        )
 
     # tokenize the data
     x_train, x_val, x_test = text_tokenizer(text_partitions = [x_train, x_val, x_test])
