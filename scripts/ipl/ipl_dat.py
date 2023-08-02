@@ -6,16 +6,21 @@ import sqlite3
 from transformers import pipeline
 
 print("Current directory is: ", os.getcwd())
-JPAP_HOME = os.getcwd()
-sys.path.append(JPAP_HOME)
+sys.path.append(os.getcwd())
 
 import jpap
 
-def _storeat(home_dir = JPAP_HOME, file_name = "industry_train.csv"):
-    dataDir = os.path.join(home_dir,"data/created/", file_name)
+# set parameters
+DB_DIR = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/"
+DATA_DIR = "./data/raw/"
+SAVE_DIR = os.path.join(DB_DIR, "augmentation_data/")
+
+# define functions
+def _storeat(save_dir = SAVE_DIR, file_name = "industry_train.csv"):
+    dataDir = os.path.join(save_dir, file_name)
     return dataDir
 
-def _load_labels(label_type = "companies", home_dir = JPAP_HOME):
+def _load_labels(label_type = "companies", data_dir = DATA_DIR):
     """
     Loads company names or company name patterns that are labelled to industries.
 
@@ -31,8 +36,7 @@ def _load_labels(label_type = "companies", home_dir = JPAP_HOME):
         A dictionary with keys indicating industry labels and values representing company names or company name patterns.
     """
     assert label_type in ["companies", "patterns"], "`type` must be one of `companies` or `patterns`."
-    label_path = os.path.abspath(os.path.join(home_dir, "data", "raw"))
-    file = os.path.join(label_path, "industry_label_" + label_type + ".json")
+    file = os.path.join(data_dir, "industry_label_" + label_type + ".json")
     with open(file, "r", encoding = "UTF-8") as f:
         labels = json.load(f)
     return labels
@@ -81,7 +85,7 @@ def _employers_from_patterns(con, query):
     return employer_list
 
 def _extract_employer_description(df, zsc = False, model = "multilingual-MiniLMv2-L6-mnli-xnli/",
-                                  path_to_models = os.path.abspath(os.path.join(JPAP_HOME, os.pardir, "hf_models/"))
+                                  path_to_models = os.path.join(DB_DIR, "hf_models/")
                                   ):
     """
     Extract sentences of a posting that describe the employer based on
@@ -155,6 +159,9 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
 
 
 if __name__ == "__main__":
-    DB_PATH = os.path.abspath(os.path.join(JPAP_HOME, os.pardir, "jpod_test.db"))
+    DB_PATH = os.path.join(DB_DIR, "jpod_test.db")
     JPOD_CON = sqlite3.connect(DB_PATH)
-    create_training_dataset(con = JPOD_CON, save = True, peak=True, use_zsc = True)
+    create_training_dataset(
+        con = JPOD_CON, save = True, 
+        peak=True, use_zsc = True
+        )
