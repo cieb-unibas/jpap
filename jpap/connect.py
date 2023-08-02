@@ -40,7 +40,27 @@ def get_postings(
 
     return pd.read_sql(query, con)
 
-def get_company_postings(con, companies, institution_name: bool = False, html: bool = False, language: str = None):
+def get_company_postings(
+        con, companies, institution_name: bool = False, 
+        html: bool = False, language: str = None
+        ):
+    """
+    Retrieve all postings from a set of employers.
+    """
+
+    # check if there are wronhgly formatted elements and change them:    
+    if not all(isinstance(x, str) for x in companies):
+        not_string_companies = [e for e in companies if not isinstance(e, str)]
+        to_string_companies = []
+        for e in not_string_companies:
+            to_string_companies += e
+        companies = [e for e in companies if isinstance(e, str)] + to_string_companies
+    
+    # clean company names
+    companies_string = [name.replace("'", "''") for name in companies]
+    companies_string = ", ".join(["'" + name + "'" for name in companies_string])
+
+    # define the query
     retrieve_cols = "jp.uniq_id, jp.text_language, jp.job_description"
     language_condition = ""
     join_statement = ""
@@ -51,7 +71,7 @@ def get_company_postings(con, companies, institution_name: bool = False, html: b
     if html:
         retrieve_cols += ", jp.html_job_description"
     if language:
-        language_condition = "AND text_language == '%s'" %language
+        language_condition = "AND text_language == '%s'" % language
     
     query = """
     SELECT %s
@@ -63,6 +83,7 @@ def get_company_postings(con, companies, institution_name: bool = False, html: b
         %s
         ) jp
     %s
-    """ % (retrieve_cols, str(companies)[1:-1], language_condition, join_statement)
+    """ % (retrieve_cols, companies_string, language_condition, join_statement)
+    pd.read_sql(query, con)
 
     return pd.read_sql(query, con)

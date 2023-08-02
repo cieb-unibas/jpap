@@ -3,51 +3,79 @@
         "abb", "sulzer", "liebherr", "comet", "georg fischer", "lafrage", "holcim", "lafrage holcim",
         "arbonia-forster", "krono", "bossard", "hilti", "burkhalter", "v-zug", "landis+gyr", "sonova",
         "stadler rail", "schindler", "bucher industries", "bühler holding", "bobst group", "ruag", 
-        "burckhardt compression", "rieter", "endress+hauser", "feintool", "oc oerlikon", "swatch", "rolex"    
+        "burckhardt compression", "rieter", "endress+hauser", "feintool", "oc oerlikon", "swatch", "rolex",
+        "toyota", "volkswagen", "samsung", "mercedes benz", "audi", "honda", "general motors", "mitsubishi",
+        "dell", "sony", "bosch", "general electric", "intel", "ibm", "nissan", "basf", "lockheed martin",
+        "boeing", "panasonic", "siemens", "peugeot", "renault", "saint-gobain", "schneider", "kuka",
+        "jenoptik", "continental", "linde"
+
     ],
 
     "pharmaceutical and life sciences": [
         "roche", "novartis", "lonza", "bachem", "pfizer", "debiopharm", "ineos", "givaudan",
-        "firmenich", "clariant", "wifor", "actelion", "csl behring"
+        "firmenich", "clariant", "wifor", "actelion", "csl behring", "pfizer", "johnson & johnson",
+        "sinopharm", "merck ", "abbvie", "bayer", "sanovi", "bristol myers squibb", "astrazeneca",
+        "abbott ", "glaxosmithkline", "takeda", "eli lilly", "gilead", "amgen", "boehringer ingelheim",
+        "novo nordisk", "moderna", "biontech"
     ],
 
     "medtech": [
-        "straumann", "alcon", "tecan", "nobel biocare", "hamilton bonaduz", "ypsomed", "comet"
+        "straumann", "alcon", "tecan", "nobel biocare", "hamilton bonaduz", "ypsomed", "comet",
+        "fresenius", "siemens healthineers", "carl zeiss meditec", "sartorius", "medtronic",
+        "danaher", "stryker", "zimmer biomet", "getinge", "coloplast", "convatec", "philips",
+        "cardinal health", "boston scientific"
     ],
 
-    "electricity and energy": ["bkw", "axpo", "alpiq", "repower"],
+    "electricity and energy": [
+        "bkw", "axpo", "alpiq", "repower", "total", "rwe", "uniper", "enbw",
+        "shell", "eni", "enel", "exxon"
+
+    ],
     
     "construction": [
         "implenia", "frutiger", "marti", "walo bertschinger", "halter", "losinger marazzi",
-        "swiss prime site", "allreal", "psp swiss property"
+        "swiss prime site", "allreal", "psp swiss property", "vinci", "strabag"
     ],
     
     "wholesale and retail stores": [
         "migros", "coop", "manor", "zara", "h&m", "c&a", "pkz", "denner",
         "aldi", "lidl", "volg", "landi", "transgourmet", "dufry", "valora",
-        "zur rose", "fenaco", "interdiscount", "ikea"
+        "zur rose", "fenaco", "interdiscount", "ikea", "walmart", "costco"
     ],
     
     "transportation and storage": [
         "sbb", "bls", "die post", "panalpina", "kühne und nagel", "ceva logistics", 
-        "mediterranean shipping company", "postauto", "swiss international airlines"
+        "mediterranean shipping company", "postauto", "swiss international airlines",
+        "lufthansa", "turkish airlines", "american airlines", "klm", "sncf", "deutsche bahn",
+        "amtrak"
     ],
     
     "information and communication": [
         "swisscom", "sunrise", "salt", "bedag", "softwareone", "microsoft", "google", "apple",
-        "facebook", "logitech", "temenos", "avaloq"
+        "facebook", "logitech", "temenos", "avaloq", "apple", "facebook", "netflix", "amazon",
+        "google", "meta", "nvidia", "microsoft", "salesforce", "oracle"
     ],
     
     "financial and insurance": [
         "ubs", "credit suisse", "julius bär", "kantonalbank", "postfinance",
         "six", "axa", "raiffeisen", "mobiliar", "swiss re", "swiss life", "helvetia",
-        "baloise", "helsana", "groupe mutuel" 
+        "baloise", "helsana", "groupe mutuel", "munich re", "deutsche bank", "allianz",
+        "hsbc", "barclays", "goldman sachs", "bank of america", "jp morgan chase",
+        "wells fargo"
+
     ],
     
-    "legal and consulting": ["pwc", "deloitte", "ernst & young", "bdo", "mckinsey"],
+    "legal and consulting": [
+        "pwc", "deloitte", "ernst & young", "bdo", "mckinsey", "bain & company",
+        "kearny", "boston consulting group", "oliver wyman", "booz allen hamilton",
+        "alvarez & marsal", "mercer", "kirkland & ellis", "latham & watkins", "baker mckinzie",
+        "dla piper", "clifford chance"
+    ],
     
     "newspapers, television and media industry": [
         "tamedia", "blick", "ringier", "nzz", "srf", "rts", "le monde", "srg", 
-        "ch media", "az medien"
+        "ch media", "az medien", "new york times", "frankfurter allgemeine zeitung",
+        "die zeit", "bild", "süddeutsche zeitung", "washington post", "cnn", "msnbc",
+        "zdf", "ard", "rtl", "pro 7"
     ]
 }

@@ -1,10 +1,21 @@
 {
     "accommodation, hotel, restaurants and food service": ["hotel ", "restaurant"],
-    "financial and insurance": [" kantonalbank", " versicherung", "insurance"],
-    "real estate": ["immobilien", "real estate"],
-    "legal and consulting": ["anwälte", " anwalt", "advokat", " recht ", "staatsanwalt", "lawyer"],
-    "research and academia": ["universität", "hochschule", "fachhochschule", "university", "college", "institute "],
-    "public administration and international organizations": ["bundesverwaltung", "kanton", "departement ", "bundesamt ", "direktion ", "ministry", "ministerium"], 
+    "financial and insurance": [
+        " kantonalbank", " versicherung", "insurance"
+    ],
+    "real estate": [
+        "immobilien", "real estate"
+    ],
+    "legal and consulting": [
+        "anwälte", " anwalt", "advokat", " recht ", "staatsanwalt", "lawyer"
+    ],
+    "research and academia": [
+        "universität", "hochschule", "fachhochschule", "university", "college", "institute "
+    ],
+    "public administration and international organizations": [
+        "bundesverwaltung", "kanton", "departement ", "bundesamt ", 
+        "direktion ", "ministry", "ministerium"
+    ], 
     "education, teaching and schools": [
         "kantonsschule", "gymnasium", "orientierungsschule", "primarschule", "sprachschule", 
         "high school", "elementary school", "language school", "middle school", "mittelschule", "realschule"
@@ -17,5 +28,7 @@
         "kino", "konzert", "schauspiel", "oper", "theater", "museum", "gallerie",
         "cinema", "concert", "art gallery"
     ],
-    "newspapers, television and media industry": ["zeitung", "newspaper", "television"]
+    "newspapers, television and media industry": [
+        "zeitung", "newspaper", "television"
+    ]
 }

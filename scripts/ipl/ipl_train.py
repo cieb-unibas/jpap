@@ -158,6 +158,9 @@ if __name__ == "__main__":
     
     # load data & split data
     df = load_labelled()
+    print("Total number of samples in the dataset: ", len(df))
+    print("Class distribution:")
+    print(df.groupby(["industry"])["industry"].count().sort_values(ascending=False))
     x_train, x_val, x_test, y_train, y_val, y_test = split_data(x = df["employer_description"], y = df["industry"], 
                                                             validation_set = True,  test_size=0.15, val_size=0.25,
                                                             random_state = 27042023)
@@ -196,6 +199,7 @@ if __name__ == "__main__":
         model = model, n_epochs = EPOCHS, 
         train_loader = train_dl, eval_loader = val_dl, 
         device= DEVICE, return_finetuned_model=False
-        )
+        )    
 
     # if final: retrain on everything and save
+    # finetuned_model.save_pretrained(SAVE_PATH)

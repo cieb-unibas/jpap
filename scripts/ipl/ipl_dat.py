@@ -131,14 +131,14 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
         else:
             labelled_employers[i] = pattern_companies
 
-    # extract all postings from these employers:
+    # extract all postings from these employers and add their industry labels:
     employer_postings = jpap.get_company_postings(
         con = con, companies = jpap.dict_items_to_list(labelled_employers), 
         institution_name = True)
-    employer_postings = employer_postings   
-
-    # add the industry labels:
-    employer_postings["industry"] = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c][0])
+    
+    industry_labels = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c])
+    employer_postings["industry"] = [le[0] if len(le) > 0 else None for le in industry_labels]
+    employer_postings = employer_postings.dropna()
 
     # extract employer description:
     if use_zsc:
@@ -157,11 +157,7 @@ def create_training_dataset(con, save = False, peak = False, use_zsc = False):
     if peak:
         print(employer_descriptions.head())
 
-
 if __name__ == "__main__":
     DB_PATH = os.path.join(DB_DIR, "jpod_test.db")
     JPOD_CON = sqlite3.connect(DB_PATH)
-    create_training_dataset(
-        con = JPOD_CON, save = True, 
-        peak=True, use_zsc = True
-        )
+    create_training_dataset(con = JPOD_CON, save = True, peak=True, use_zsc = True)
