@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     # set directories
     BASE_DIR = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/"
-    DB_VERSION = "jpod_test.db"
+    DB_VERSION = "jpod.db"
     DATA_DIR = os.path.join(BASE_DIR, "jpap/data/raw/")
     MODEL_DIR = os.path.join(BASE_DIR, "hf_models/")
     SAVE_AS = os.path.join(BASE_DIR, "augmentation_data/industry_train.csv")
