@@ -84,6 +84,5 @@ def get_company_postings(
         ) jp
     %s
     """ % (retrieve_cols, companies_string, language_condition, join_statement)
-    pd.read_sql(query, con)
 
     return pd.read_sql(query, con)

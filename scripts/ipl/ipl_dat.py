@@ -3,6 +3,7 @@ import os
 import sys
 import sqlite3
 
+import pandas as pd
 from transformers import pipeline
 
 print("Current directory is: ", os.getcwd())
@@ -57,7 +58,7 @@ def _name_pattern_query(patterns):
 
 def _employers_from_patterns(con, query):
     """
-    Extract a list of employera that match a certain pattern in their name.
+    Extract a list of employers from JPOD that match a certain pattern in their name.
 
     Parameters:
     ----------
@@ -101,7 +102,7 @@ def _extract_employer_description(df, path_to_models, zsc = False,
     df["employer_description"] = [None if x == "" else x for x in extractor.employer_desc]
     
     return df
-
+    
 def create_training_dataset(con, data_dir, model_dir = None, save_as = None, peak = False, use_zsc = False):
     """
     Creates a dataset of labelled job postings with respect to industries.
@@ -139,13 +140,15 @@ def create_training_dataset(con, data_dir, model_dir = None, save_as = None, pea
         else:
             labelled_employers[i] = pattern_companies
 
-    # extract all postings from these employers and add their industry labels:
+    # extract all postings from these employers, add their industry labels and define sample size:
     employer_postings = jpap.get_company_postings(
         con = con, companies = jpap.dict_items_to_list(labelled_employers), 
         institution_name = True)
     
     industry_labels = employer_postings["company_name"].map(lambda x: [i for i, c in labelled_employers.items() if x in c])
     employer_postings["industry"] = [le[0] if len(le) > 0 else None for le in industry_labels]
+    employer_postings = employer_postings.dropna().reset_index(drop=True)
+    employer_postings = jpap.subsample_df(df = employer_postings, group_col= "industry", max_n_per_group = 500)
     employer_postings = employer_postings.dropna().reset_index(drop=True)
 
     # extract employer description:

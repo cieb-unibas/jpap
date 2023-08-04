@@ -56,7 +56,7 @@ class DescExtractor(object):
         if len(self.retrieved_by) > 1:
             self.retrieved_by = list(set(self.retrieved_by))
     
-    def sentences_by_name(self, employer_names):
+    def sentences_by_name(self, employer_names, log_number = 100):
         """
         Extract all sentences from job postings that feature the company name.
         """
@@ -66,6 +66,8 @@ class DescExtractor(object):
         for i, t in enumerate(self.tokenized_input):
             employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
             self._assign_empdesc(desc = employer_desc, idx = i)
+            if i % log_number == 0:
+                print("Applied name-based extraction to %d postings" % i)
         self._log_retrieved(by = "name")
    
     def sentences_by_zsc(
