@@ -160,7 +160,7 @@ def create_training_dataset(con, data_dir, model_dir = None, save_as = None, pea
         df = employer_postings, 
         zsc = use_zsc, path_to_models = model_dir
         )
-    employer_descriptions = employer_descriptions.dropna().reset_index(drop=True)[["employer_description", "industry"]]
+    employer_descriptions = employer_descriptions.dropna().reset_index(drop=True)[["employer_description", "company_name","industry"]]
     print("********** Extracted employer descriptions for %d postings from the database.**********" % len(employer_descriptions))
 
     # save and return

@@ -5,14 +5,14 @@ class DescExtractor(object):
         self.postings = postings
         self.employer_desc = []
         self.retrieved_by = []
-        self.input = postings
-        self.tokenized_input = self.tokenize_all()
+        self._input = postings
+        self._tokenized_input = self.tokenize_all()
     
     def tokenize_all(self):
         """
         Tokenize all postings text by splitting them up into sentences.
         """
-        tokenized_input = [nltk.sent_tokenize(p) for p in self.input]
+        tokenized_input = [nltk.sent_tokenize(p) for p in self._input]
         return tokenized_input 
     
     def _update(self, tokenized_posting, employer_description):
@@ -31,10 +31,11 @@ class DescExtractor(object):
             return None
         else:
             updated_postings = []
-            for p, d in zip(self.tokenized_input, self.employer_desc):
+            for p, d in zip(self._tokenized_input, self.employer_desc):
                 updated_posting = self._update(p, d)
                 updated_postings.append(updated_posting)
-            self.tokenized_input = self.tokenize_all()
+            self._input = updated_postings
+            self._tokenized_input = self.tokenize_all()
 
     def _assign_empdesc(self, desc: str, idx: int) -> None:
         """
@@ -56,14 +57,14 @@ class DescExtractor(object):
         if len(self.retrieved_by) > 1:
             self.retrieved_by = list(set(self.retrieved_by))
     
-    def sentences_by_name(self, employer_names, log_number = 100):
+    def sentences_by_name(self, employer_names, log_number = 200):
         """
         Extract all sentences from job postings that feature the company name.
         """
         assert len(self.postings) == len(employer_names), "`employer_names` must have the same length as the number of postings supplied to `DescEctractor()`."
         self.employer_names = employer_names
         self._update_all()
-        for i, t in enumerate(self.tokenized_input):
+        for i, t in enumerate(self._tokenized_input):
             employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
             self._assign_empdesc(desc = employer_desc, idx = i)
             if i % log_number == 0:
@@ -73,7 +74,7 @@ class DescExtractor(object):
     def sentences_by_zsc(
             self, classifier, targets: list[str], 
             excluding_classes: list[str] = ["address", "benefits"], 
-            log_number: int = 50
+            log_number: int = 200
             ):
         """
         Extract all sentences from job postings that are labelled by a zero-shot-classifier to
@@ -83,7 +84,7 @@ class DescExtractor(object):
         labels = targets + ["other"]
         if excluding_classes:
             labels += excluding_classes
-        for i, t in enumerate(self.tokenized_input):
+        for i, t in enumerate(self._tokenized_input):
             employer_sentences = [classifier(s, candidate_labels = labels) for s in t]
             employer_desc = " ".join([s["sequence"] for s in employer_sentences if s["labels"][0] in targets])
             self._assign_empdesc(desc = employer_desc, idx = i)
