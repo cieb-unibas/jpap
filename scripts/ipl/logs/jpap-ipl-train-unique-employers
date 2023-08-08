@@ -1,0 +1,85 @@
+Training the model on cuda over 5 epochs in batches of size 16.
+Total number of samples in the dataset:  532
+Class distribution:
+industry
+accommodation, hotel, restaurants and food service       50
+arts, entertainment and recreation                       50
+research and academia                                    50
+real estate                                              50
+public administration and international organizations    50
+medicine, health and hospital                            50
+education, teaching and schools                          50
+manufacturing                                            34
+pharmaceutical and life sciences                         22
+financial and insurance                                  21
+medtech                                                  19
+wholesale and retail stores                              18
+information and communication                            17
+legal and consulting                                     12
+newspapers, television and media industry                12
+electricity and energy                                   11
+construction                                              8
+transportation and storage                                8
+Name: industry, dtype: int64
+Number of training samples: 339
+Number of validation samples: 113
+Number of testing samples: 80
+Baseline accuracies for the training dataset:
+ ZeroR: 0.094
+ RandomGuessing: 0.003
+Epooch 1: 1/22 data batches processed | Training time batch: 0 seconds
+Epooch 1: 6/22 data batches processed | Training time batch: 0 seconds
+Epooch 1: 11/22 data batches processed | Training time batch: 0 seconds
+Epooch 1: 16/22 data batches processed | Training time batch: 0 seconds
+Epooch 1: 21/22 data batches processed | Training time batch: 0 seconds
+Epoch 1/5 | Training Accuracy: 0.086 | Validation Accuracy: 0.124 | Training time epoch: 0.046 minutes
+Epooch 2: 1/22 data batches processed | Training time batch: 0 seconds
+Epooch 2: 6/22 data batches processed | Training time batch: 0 seconds
+Epooch 2: 11/22 data batches processed | Training time batch: 0 seconds
+Epooch 2: 16/22 data batches processed | Training time batch: 0 seconds
+Epooch 2: 21/22 data batches processed | Training time batch: 0 seconds
+Epoch 2/5 | Training Accuracy: 0.271 | Validation Accuracy: 0.389 | Training time epoch: 0.036 minutes
+Epooch 3: 1/22 data batches processed | Training time batch: 0 seconds
+Epooch 3: 6/22 data batches processed | Training time batch: 0 seconds
+Epooch 3: 11/22 data batches processed | Training time batch: 0 seconds
+Epooch 3: 16/22 data batches processed | Training time batch: 0 seconds
+Epooch 3: 21/22 data batches processed | Training time batch: 0 seconds
+Epoch 3/5 | Training Accuracy: 0.501 | Validation Accuracy: 0.504 | Training time epoch: 0.035 minutes
+Epooch 4: 1/22 data batches processed | Training time batch: 0 seconds
+Epooch 4: 6/22 data batches processed | Training time batch: 0 seconds
+Epooch 4: 11/22 data batches processed | Training time batch: 0 seconds
+Epooch 4: 16/22 data batches processed | Training time batch: 0 seconds
+Epooch 4: 21/22 data batches processed | Training time batch: 0 seconds
+Epoch 4/5 | Training Accuracy: 0.625 | Validation Accuracy: 0.487 | Training time epoch: 0.035 minutes
+Epooch 5: 1/22 data batches processed | Training time batch: 0 seconds
+Epooch 5: 6/22 data batches processed | Training time batch: 0 seconds
+Epooch 5: 11/22 data batches processed | Training time batch: 0 seconds
+Epooch 5: 16/22 data batches processed | Training time batch: 0 seconds
+Epooch 5: 21/22 data batches processed | Training time batch: 0 seconds
+Epoch 5/5 | Training Accuracy: 0.696 | Validation Accuracy: 0.540 | Training time epoch: 0.035 minutes
+Training finished. Returning fine-tuned model
+                                                       precision    recall  f1-score   support
+
+   accommodation, hotel, restaurants and food service      0.875     0.700     0.778        10
+                   arts, entertainment and recreation      0.500     0.300     0.375        10
+                                         construction      0.000     0.000     0.000         2
+                      education, teaching and schools      1.000     0.818     0.900        11
+                               electricity and energy      0.000     0.000     0.000         2
+                              financial and insurance      0.600     0.600     0.600         5
+                        information and communication      0.000     0.000     0.000         4
+                                 legal and consulting      0.000     0.000     0.000         2
+                                        manufacturing      0.417     0.714     0.526         7
+                        medicine, health and hospital      0.381     0.727     0.500        11
+                                              medtech      0.500     0.250     0.333         4
+            newspapers, television and media industry      0.000     0.000     0.000         2
+                     pharmaceutical and life sciences      0.600     0.600     0.600         5
+public administration and international organizations      0.222     0.364     0.276        11
+                                          real estate      0.615     0.727     0.667        11
+                                research and academia      0.667     0.600     0.632        10
+                           transportation and storage      0.000     0.000     0.000         2
+                          wholesale and retail stores      0.600     0.750     0.667         4
+
+                                             accuracy                          0.531       113
+                                            macro avg      0.388     0.397     0.381       113
+                                         weighted avg      0.514     0.531     0.507       113
+

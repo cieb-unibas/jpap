@@ -1,18 +1,28 @@
 import random
-import os
-import sys
 import time
 import datetime
+import sys
+import os
+import json
 
 import torch
 from torch.utils.data import Dataset, DataLoader
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
 import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report
+
+sys.path.append(os.getcwd())
+from jpap.preprocessing import subsample_df
+
+# def relabel(existing_labels, relabel_dict_path = os.path.join(os.getcwd(), "data/raw/macro_industry_mapings.json")):
+#     file = os.path.join(relabel_dict_path)
+#     with open(file, "r", encoding = "UTF-8") as f:
+#         label_dict = json.load(f)
+#     new_labels = [industry_group if i in grouped_industries else "other" for i in existing_labels for industry_group, grouped_industries in label_dict.items()]
 
 def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
     """
@@ -26,6 +36,11 @@ def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
         df = df.reset_index(drop=True)
     return df
 
+def blind_employer_names(df, description_column: str = "employer_description", name_column: str = "company_name", replacement = "blinded_name"):
+    assert isinstance(df, pd.DataFrame), "`df`must be of type pandas.DataFrame"
+    df[description_column] = df.apply(lambda x: x[description_column].replace(x[name_column], replacement), axis = 1)   
+    return df
+
 def load_xlm_pretrained(path_to_model = None, n_targets: int = 16):
     if path_to_model:
         tokenizer = AutoTokenizer.from_pretrained(path_to_model)
@@ -36,9 +51,9 @@ def load_xlm_pretrained(path_to_model = None, n_targets: int = 16):
     return tokenizer, model
 
 def split_data(x, y, validation_set = True, test_size: float = 0.15, val_size: float = 0.25, random_state = None):
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size= test_size, random_state=random_state)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size= test_size, random_state=random_state, stratify=y)
     if validation_set:
-        x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=val_size, random_state=random_state)
+        x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=val_size, random_state=random_state, stratify=y_train)
         return x_train, x_val, x_test, y_train, y_val, y_test
     else:
         return x_train, x_test, y_train, y_test
@@ -52,15 +67,16 @@ def encode_labels(label_encoder, y, torch_dtype = torch.int32):
     labels = torch.tensor(label_encoder.transform(y), dtype=torch_dtype)
     return labels
 
-def text_tokenizer(text_partitions: list, return_tensors="pt", 
-    truncation=True, max_length=128, padding=True):
-    for i, t in enumerate(text_partitions):
-        text_partitions[i] = tokenizer(t.to_list(), return_tensors=return_tensors,
-                                       truncation=truncation, max_length=max_length,
-                                       padding = padding)
-    
-    return text_partitions[0], text_partitions[1], text_partitions[2] 
-
+def text_tokenizer(
+        tokenizer, text_partitions: list, return_tensors="pt", 
+        truncation=True, max_length=128, padding=True
+        ):
+        for i, t in enumerate(text_partitions):
+            text_partitions[i] = tokenizer(t.to_list(), return_tensors=return_tensors,
+                                           truncation=truncation, max_length=max_length,
+                                           padding = padding
+                                           )
+        return text_partitions[0], text_partitions[1], text_partitions[2] 
 
 class IndustryClassificationDataset(Dataset):
     def __init__(self, targets, texts) -> None:
@@ -95,7 +111,8 @@ def evaluate_finetuned(model, eval_loader, device):
     acc = float(correct_samples) / n_samples
     return acc
 
-def finetune(model, n_epochs : int, train_loader, eval_loader, device : str, return_finetuned_model = True):
+def finetune(model, n_epochs : int, train_loader, eval_loader, device : str, 
+             return_finetuned_model: bool = True):
     """
     Finetune a certain model using a training and evaluation pipeline.
     """
@@ -140,20 +157,42 @@ def finetune(model, n_epochs : int, train_loader, eval_loader, device : str, ret
     else:
         print("Training finished.")
 
+def get_model_report(x, y_true, label_encoder, device = "cuda"):
+    text_features = x["input_ids"].to(device)
+    mask = x["attention_mask"].to(device)
+    predicted_classes = torch.argmax(model(text_features, attention_mask = mask)["logits"], dim = 1).cpu()
+    report = classification_report(y_true=y_true, y_pred=predicted_classes, labels = list(range(len(label_encoder.classes_))),
+                          digits=3, target_names=label_encoder.classes_)
+    return report
+
 if __name__ == "__main__":
     
     # training parameters:
     TRAIN_DAT = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv"
+    ONLY_UNIQUE_EMPLOYERS = True
+    BLIND_EMPLOYER_NAMES = True
+    SAMPLES_PER_INDUSTRY = 50
+    
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    BATCH_SIZE = 32
+    BATCH_SIZE = 16
     EPOCHS = 5
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
-    # load data & split data
-    df = load_labelled(path = TRAIN_DAT)
+    # load data
+    if ONLY_UNIQUE_EMPLOYERS:
+        df = load_labelled(path=TRAIN_DAT).drop_duplicates(subset=["company_name"]).reset_index(drop=True)
+    else:
+        df = load_labelled(path = TRAIN_DAT)
+    if BLIND_EMPLOYER_NAMES:
+        df = blind_employer_names(df=df, description_column="employer_description", name_column="company_name", replacement="this company")
+    if SAMPLES_PER_INDUSTRY:
+        df = subsample_df(df=df, group_col="industry", max_n_per_group=SAMPLES_PER_INDUSTRY)
+
     print("Total number of samples in the dataset: ", len(df))
     print("Class distribution:")
     print(df.groupby(["industry"])["industry"].count().sort_values(ascending=False))
+
+    # split data into partitions
     x_train, x_val, x_test, y_train, y_val, y_test = split_data(x = df["employer_description"], y = df["industry"], 
                                                             validation_set = True,  test_size=0.15, val_size=0.25,
                                                             random_state = 27042023)
@@ -169,8 +208,8 @@ if __name__ == "__main__":
         )
 
     # tokenize the data
-    x_train, x_val, x_test = text_tokenizer(text_partitions = [x_train, x_val, x_test])
-    y_train, y_val, y_test = encode_labels(label_encoder=le, y = y_train), encode_labels(label_encoder=le, y = y_val), encode_labels(label_encoder=le, y = y_test) 
+    x_train, x_val, x_test = text_tokenizer(tokenizer = tokenizer, text_partitions = [x_train, x_val, x_test])
+    y_train, y_val, y_test = encode_labels(label_encoder = le, y = y_train), encode_labels(label_encoder=le, y = y_val), encode_labels(label_encoder=le, y = y_test) 
 
     # data pipelines
     train_dl = DataLoader(
@@ -194,8 +233,12 @@ if __name__ == "__main__":
     finetuned_model = finetune(
         model = model, n_epochs = EPOCHS, 
         train_loader = train_dl, eval_loader = val_dl, 
-        device= DEVICE, return_finetuned_model=False
-        )    
+        device= DEVICE, return_finetuned_model=True
+        )
+    
+    # model report:
+    report = get_model_report(x = x_val, y_true=y_val, label_encoder = le, device=DEVICE)
+    print(report)
 
     # if final: retrain on everything and save
     # finetuned_model.save_pretrained(SAVE_PATH)
