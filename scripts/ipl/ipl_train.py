@@ -18,11 +18,12 @@ from sklearn.metrics import classification_report
 sys.path.append(os.getcwd())
 from jpap.preprocessing import subsample_df
 
-# def relabel(existing_labels, relabel_dict_path = os.path.join(os.getcwd(), "data/raw/macro_industry_mapings.json")):
-#     file = os.path.join(relabel_dict_path)
-#     with open(file, "r", encoding = "UTF-8") as f:
-#         label_dict = json.load(f)
-#     new_labels = [industry_group if i in grouped_industries else "other" for i in existing_labels for industry_group, grouped_industries in label_dict.items()]
+def relabel(df, label_column = "industry", relabel_dict_path = os.path.join(os.getcwd(), "data/raw/macro_industry_mapings.json")):
+    file = os.path.join(relabel_dict_path)
+    with open(file, "r", encoding = "UTF-8") as f:
+        label_dict = json.load(f)
+    df[label_column] = df[label_column].replace(label_dict)
+    return df
 
 def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
     """
@@ -50,12 +51,57 @@ def load_xlm_pretrained(path_to_model = None, n_targets: int = 16):
         model = AutoModelForSequenceClassification.from_pretrained("xlm-roberta-base", num_labels = n_targets)
     return tokenizer, model
 
-def split_data(x, y, validation_set = True, test_size: float = 0.15, val_size: float = 0.25, random_state = None):
+def random_data_split(x, y, validation_set = True, test_size: float = 0.15, val_size: float = 0.25, random_state = None):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size= test_size, random_state=random_state, stratify=y)
     if validation_set:
         x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=val_size, random_state=random_state, stratify=y_train)
         return x_train, x_val, x_test, y_train, y_val, y_test
     else:
+        return x_train, x_test, y_train, y_test
+
+
+def split_by_employers(df, x = "employer_description", y = "industry",
+                       validation_set = True, test_size: float = 0.15, 
+                       val_size: float = 0.25, random_state = 8082023
+                       ):
+    company_counts = pd.DataFrame(df.groupby(["company_name"])["company_name"].count().sample(frac = 1, random_state = random_state))
+    company_counts["cumsum"] = company_counts["company_name"].cumsum()
+
+    def get_partition_sample(df, target_column, employers):
+        output = df.loc[df["company_name"].isin(employers), target_column].reset_index(drop=True)
+        return output
+    
+    # define the test partition:
+    n_test_postings = int(len(df) * test_size)
+    test_companies = company_counts.loc[company_counts["cumsum"] < n_test_postings, ].index.tolist()
+    x_test = get_partition_sample(df = df, target_column=x, employers=test_companies)
+    y_test = get_partition_sample(df = df, target_column=y, employers=test_companies)
+
+    # define training and validation partitions
+    train_companies = company_counts.loc[company_counts["cumsum"] > n_test_postings, "company_name"]
+
+    if validation_set:
+        train_companies = pd.DataFrame(train_companies)
+        train_companies["cumsum"] = train_companies["company_name"].cumsum()
+        n_valid_postings = int(max(train_companies["cumsum"]) * val_size)
+        val_companies = train_companies.loc[train_companies["cumsum"] < n_valid_postings, ].index.tolist()
+        assert not any(c in val_companies for c in test_companies)
+
+        x_val = get_partition_sample(df = df, target_column=x, employers=val_companies)
+        y_val = get_partition_sample(df = df, target_column=y, employers=val_companies)
+        
+        train_companies = train_companies.loc[train_companies["cumsum"] > n_valid_postings, ].index.tolist()
+        assert not any(c in train_companies for c in val_companies)
+        x_train = get_partition_sample(df = df, target_column=x, employers=train_companies)
+        y_train = get_partition_sample(df = df, target_column=y, employers=train_companies)
+
+        return x_train, x_val, x_test, y_train, y_val, y_test
+    else:
+        train_companies = train_companies.index.tolist()
+        assert not any(c in train_companies for c in test_companies)    
+        x_train = get_partition_sample(df = df, target_column=x, employers=train_companies)
+        y_train = get_partition_sample(df = df, target_column=y, employers=train_companies)
+
         return x_train, x_test, y_train, y_test
 
 def get_label_encoder(y):
@@ -157,25 +203,36 @@ def finetune(model, n_epochs : int, train_loader, eval_loader, device : str,
     else:
         print("Training finished.")
 
-def get_model_report(x, y_true, label_encoder, device = "cuda"):
-    text_features = x["input_ids"].to(device)
-    mask = x["attention_mask"].to(device)
+def get_model_report(model, x, y_true, label_encoder, device = "cuda", n_samples = 150):
+    if n_samples:
+        sample_index = random.sample(range(len(x["input_ids"])), k = n_samples)
+        sample_index = torch.tensor(sample_index)
+        x = x[sample_index]
+    else:
+        n_samples = len(x["input_ids"])
+    text_features = x["input_ids"][:n_samples].to(device)
+    mask = x["attention_mask"][:n_samples].to(device)
     predicted_classes = torch.argmax(model(text_features, attention_mask = mask)["logits"], dim = 1).cpu()
-    report = classification_report(y_true=y_true, y_pred=predicted_classes, labels = list(range(len(label_encoder.classes_))),
-                          digits=3, target_names=label_encoder.classes_)
+    report = classification_report(
+        y_true=y_true[:n_samples], y_pred=predicted_classes, 
+        labels = list(range(len(label_encoder.classes_))),
+        digits=3, target_names=label_encoder.classes_)
     return report
 
 if __name__ == "__main__":
     
     # training parameters:
     TRAIN_DAT = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv"
-    ONLY_UNIQUE_EMPLOYERS = True
+    ONLY_UNIQUE_EMPLOYERS = False
+    MACRO_INDUSTRY_GROUPS = True
+    SAMPLES_PER_INDUSTRY = None
+
     BLIND_EMPLOYER_NAMES = True
-    SAMPLES_PER_INDUSTRY = 50
-    
+    SPLIT_BY = "employers"
+
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    BATCH_SIZE = 16
-    EPOCHS = 5
+    BATCH_SIZE = 32
+    EPOCHS = 2
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
     # load data
@@ -183,19 +240,29 @@ if __name__ == "__main__":
         df = load_labelled(path=TRAIN_DAT).drop_duplicates(subset=["company_name"]).reset_index(drop=True)
     else:
         df = load_labelled(path = TRAIN_DAT)
-    if BLIND_EMPLOYER_NAMES:
-        df = blind_employer_names(df=df, description_column="employer_description", name_column="company_name", replacement="this company")
+    if MACRO_INDUSTRY_GROUPS:
+        df = relabel(df=df, label_column="industry")
     if SAMPLES_PER_INDUSTRY:
-        df = subsample_df(df=df, group_col="industry", max_n_per_group=SAMPLES_PER_INDUSTRY)
-
+        df = subsample_df(df=df, group_col="industry", max_n_per_group = SAMPLES_PER_INDUSTRY)
     print("Total number of samples in the dataset: ", len(df))
     print("Class distribution:")
     print(df.groupby(["industry"])["industry"].count().sort_values(ascending=False))
 
-    # split data into partitions
-    x_train, x_val, x_test, y_train, y_val, y_test = split_data(x = df["employer_description"], y = df["industry"], 
-                                                            validation_set = True,  test_size=0.15, val_size=0.25,
-                                                            random_state = 27042023)
+    # process data and split into partitions
+    if BLIND_EMPLOYER_NAMES:
+        df = blind_employer_names(df=df, description_column="employer_description", name_column="company_name", replacement="this company")
+    
+    if SPLIT_BY == "random":
+        x_train, x_val, x_test, y_train, y_val, y_test = random_data_split(x = df["employer_description"], y = df["industry"], 
+                                                                validation_set = True,  test_size=0.15, val_size=0.25,
+                                                                random_state = 27042023)
+    elif SPLIT_BY == "employers":
+        x_train, x_val, x_test, y_train, y_val, y_test = split_by_employers(df=df, x = "employer_description", y = "industry",
+                                                                            validation_set=True, test_size=0.15, val_size=0.25,
+                                                                            random_state=8082023)
+    else:
+        raise ValueError("`SPLIT_BY` parameter must be either 'random' or 'employers'")
+    
     print("Number of training samples: %d" %len(x_train))
     print("Number of validation samples: %d" %len(x_val))
     print("Number of testing samples: %d" %len(x_test))
@@ -237,8 +304,12 @@ if __name__ == "__main__":
         )
     
     # model report:
-    report = get_model_report(x = x_val, y_true=y_val, label_encoder = le, device=DEVICE)
+    report = get_model_report(model = finetuned_model, n_samples = 150,
+                              x = x_val, y_true=y_val, 
+                              label_encoder = le, device=DEVICE)
     print(report)
 
     # if final: retrain on everything and save
     # finetuned_model.save_pretrained(SAVE_PATH)
+
+next(iter(val_dl))

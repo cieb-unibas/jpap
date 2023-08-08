@@ -1,3 +1,20 @@
 {
-    // get a dict of the form "old value": "new value"
+    "manufacturing": "manufacturing",
+    "pharmaceutical and life sciences": "pharmaceutical and life sciences",
+    "medtech": "manufacturing",
+    "electricity and energy": "manufacturing",    
+    "construction": "manufacturing",
+    "wholesale and retail stores": "wholesale and retail stores",    
+    "transportation and storage": "transportation",    
+    "information and communication":"information and communication",    
+    "financial and insurance": "financial and insurance",
+    "legal and consulting": "legal, consulting and real estate",    
+    "newspapers, television and media industry": "arts, entertainment and media",
+    "accommodation, hotel, restaurants and food service": "accommodation and restaurants",
+    "real estate":"legal, consulting and real estate", 
+    "research and academia": "research",
+    "public administration and international organizations": "public administration",
+    "education, teaching and schools": "education",
+    "medicine, health and hospital": "health",
+    "arts, entertainment and recreation": "arts, entertainment and media"
 }

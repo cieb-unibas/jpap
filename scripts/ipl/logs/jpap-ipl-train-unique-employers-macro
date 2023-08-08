@@ -1,0 +1,117 @@
+Training the model on cuda over 2 epochs in batches of size 32.
+Total number of samples in the dataset:  8736
+Class distribution:
+industry
+manufacturing                        1973
+legal, consulting and real estate     980
+arts, entertainment and media         962
+pharmaceutical and life sciences      499
+information and communication         497
+financial and insurance               496
+transportation                        494
+research                              491
+wholesale and retail stores           487
+health                                480
+public administration                 477
+accommodation and restaurants         459
+education                             441
+Name: industry, dtype: int64
+Number of training samples: 5580
+Number of validation samples: 1853
+Number of testing samples: 1303
+Baseline accuracies for the training dataset:
+ ZeroR: 0.240
+ RandomGuessing: 0.000
+Epooch 1: 1/175 data batches processed | Training time batch: 4 seconds
+Epooch 1: 6/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 11/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 16/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 21/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 26/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 31/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 36/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 41/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 46/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 51/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 56/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 61/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 66/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 71/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 76/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 81/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 86/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 91/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 96/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 101/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 106/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 111/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 116/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 121/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 126/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 131/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 136/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 141/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 146/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 151/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 156/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 161/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 166/175 data batches processed | Training time batch: 0 seconds
+Epooch 1: 171/175 data batches processed | Training time batch: 0 seconds
+Epoch 1/2 | Training Accuracy: 0.390 | Validation Accuracy: 0.430 | Training time epoch: 0.560 minutes
+Epooch 2: 1/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 6/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 11/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 16/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 21/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 26/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 31/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 36/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 41/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 46/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 51/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 56/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 61/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 66/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 71/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 76/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 81/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 86/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 91/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 96/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 101/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 106/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 111/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 116/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 121/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 126/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 131/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 136/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 141/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 146/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 151/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 156/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 161/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 166/175 data batches processed | Training time batch: 0 seconds
+Epooch 2: 171/175 data batches processed | Training time batch: 0 seconds
+Epoch 2/2 | Training Accuracy: 0.802 | Validation Accuracy: 0.481 | Training time epoch: 0.483 minutes
+Training finished. Returning fine-tuned model
+                                   precision    recall  f1-score   support
+
+    accommodation and restaurants      0.961     0.849     0.901        86
+    arts, entertainment and media      0.741     0.571     0.645        35
+                        education      0.000     0.000     0.000         0
+          financial and insurance      0.000     0.000     0.000         0
+                           health      0.000     0.000     0.000         0
+    information and communication      0.000     0.000     0.000         0
+legal, consulting and real estate      0.000     0.000     0.000         0
+                    manufacturing      0.938     0.517     0.667        29
+ pharmaceutical and life sciences      0.000     0.000     0.000         0
+            public administration      0.000     0.000     0.000         0
+                         research      0.000     0.000     0.000         0
+                   transportation      0.000     0.000     0.000         0
+      wholesale and retail stores      0.000     0.000     0.000         0
+
+                        micro avg      0.720     0.720     0.720       150
+                        macro avg      0.203     0.149     0.170       150
+                     weighted avg      0.905     0.720     0.796       150
+
