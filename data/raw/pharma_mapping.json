@@ -1,0 +1,20 @@
+{
+    "manufacturing": "other",
+    "pharmaceutical and life sciences": "pharmaceutical and life sciences",
+    "medtech": "other",
+    "electricity and energy": "other",    
+    "construction": "other",
+    "wholesale and retail stores": "other",    
+    "transportation and storage": "other",    
+    "information and communication":"other",    
+    "financial and insurance": "other",
+    "legal and consulting": "other",    
+    "newspapers, television and media industry": "other",
+    "accommodation, hotel, restaurants and food service": "other",
+    "real estate":"other", 
+    "research and academia": "other",
+    "public administration and international organizations": "other",
+    "education, teaching and schools": "other",
+    "medicine, health and hospital": "other",
+    "arts, entertainment and recreation": "other"
+}
