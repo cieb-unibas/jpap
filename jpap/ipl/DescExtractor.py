@@ -1,3 +1,4 @@
+from transformers import pipeline
 import nltk
 
 class DescExtractor(object):
@@ -91,3 +92,16 @@ class DescExtractor(object):
             if i % log_number == 0:
                 print("Applied zero-shot extration to %d postings" % i)
         self._log_retrieved(by = "zsc")
+
+    def __call__(self, employer_names: list = None, use_zsc = True):
+        if employer_names != None:
+            self.sentences_by_name(employer_names=employer_names)
+        if use_zsc:
+            self.zsc_path = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/hf_models/multilingual-MiniLMv2-L6-mnli-xnli/"
+            classifier = pipeline(task = "zero-shot-classification", model = self.zsc_path)
+            self.zsc_targets = ["who we are", "who this is", "industry or sector"]
+            self.sentences_by_zsc(classifier=classifier, targets = self.zsc_targets)
+        employer_descriptions =  [None if x == "" else x for x in self.employer_desc]
+        return employer_descriptions
+
+
