@@ -1,0 +1,38 @@
+Training the model on cuda over 2 epochs in batches of size 16.
+Total number of samples in the dataset:  600
+Class distribution:
+industry
+other                               300
+pharmaceutical and life sciences    300
+Name: industry, dtype: int64
+Number of training samples: 480
+Number of testing samples: 119
+Baseline accuracies for the training dataset:
+ ZeroR: 0.569
+ RandomGuessing: 0.002
+Epoch 1: 1/30 data batches processed | Training Accuracy: 0.375 | Training time batch: 0.726 seconds
+Epoch 1: 6/30 data batches processed | Training Accuracy: 0.573 | Training time batch: 0.099 seconds
+Epoch 1: 11/30 data batches processed | Training Accuracy: 0.585 | Training time batch: 0.099 seconds
+Epoch 1: 16/30 data batches processed | Training Accuracy: 0.598 | Training time batch: 0.099 seconds
+Epoch 1: 21/30 data batches processed | Training Accuracy: 0.607 | Training time batch: 0.099 seconds
+Epoch 1: 26/30 data batches processed | Training Accuracy: 0.642 | Training time batch: 0.099 seconds
+------Epoch 1/2 | Training Accuracy: 0.673 | Validation Accuracy: 0.908 | Training time epoch: 0.060 minutes------
+Epoch 2: 1/30 data batches processed | Training Accuracy: 1.000 | Training time batch: 0.098 seconds
+Epoch 2: 6/30 data batches processed | Training Accuracy: 0.865 | Training time batch: 0.099 seconds
+Epoch 2: 11/30 data batches processed | Training Accuracy: 0.898 | Training time batch: 0.099 seconds
+Epoch 2: 16/30 data batches processed | Training Accuracy: 0.906 | Training time batch: 0.099 seconds
+Epoch 2: 21/30 data batches processed | Training Accuracy: 0.914 | Training time batch: 0.099 seconds
+Epoch 2: 26/30 data batches processed | Training Accuracy: 0.913 | Training time batch: 0.099 seconds
+------Epoch 2/2 | Training Accuracy: 0.921 | Validation Accuracy: 0.849 | Training time epoch: 0.050 minutes------
+Training finished. Returning fine-tuned model
+                                  precision    recall  f1-score   support
+
+                           other      0.605     0.885     0.719        26
+pharmaceutical and life sciences      0.963     0.839     0.897        93
+
+                        accuracy                          0.849       119
+                       macro avg      0.784     0.862     0.808       119
+                    weighted avg      0.885     0.849     0.858       119
+
+Training finished. Returning fine-tuned model
+Model saved as:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_pharma.pt

@@ -18,14 +18,6 @@ from sklearn.metrics import classification_report
 sys.path.append(os.getcwd())
 from jpap.preprocessing import subsample_df
 
-def relabel(df, label_column: str = "industry", 
-            relabel_dict_path: dict = os.path.join(os.getcwd(), "data/raw/macro_industry_mapings.json")) -> pd.DataFrame:
-    file = os.path.join(relabel_dict_path)
-    with open(file, "r", encoding = "UTF-8") as f:
-        label_dict = json.load(f)
-    df[label_column] = df[label_column].replace(label_dict)
-    return df
-
 def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
     """
     Load n postings' employer descriptions that were manually labelled to industries.
@@ -38,12 +30,44 @@ def load_labelled(path: str, n_postings : int = None) -> pd.DataFrame:
         df = df.reset_index(drop=True)
     return df
 
-def blind_employer_names(df, description_column: str = "employer_description", name_column: str = "company_name", replacement: str = "blinded_name"):
+def relabel(df, label_column: str = "industry", 
+            relabel_dict_path: str = os.path.join(os.getcwd(), "data/raw/"), 
+            file: str = "macro_industry_mapings.json") -> pd.DataFrame:
+    """
+    Redifines the labels of samples according to an input dictionary.
+    """
+    filepath = os.path.join(relabel_dict_path, file)
+    with open(filepath, "r", encoding = "UTF-8") as f:
+        label_dict = json.load(f)
+    df[label_column] = df[label_column].replace(label_dict)
+    return df
+
+def restrict_industry_level(df, industry_level : str = "pharma"):
+    """
+    Defines on which level labels should be classified.
+    """
+    if industry_level == None:
+        return df
+    else:
+        assert industry_level in ["pharma", "macro", "meso"]
+        file = industry_level + "_mapping.json"
+        df_out = relabel(df = df, label_column= "industry", file=file)
+        return df_out
+
+def blind_employer_names(df, description_column: str = "employer_description", 
+                         name_column: str = "company_name", replacement: str = "blinded_name") -> pd.DataFrame:
+    """
+    Replaces employer names in the postings' full text with a placeholder `replacement`. This can be important to
+    prevent a classifier from learning simple heuristics.
+    """
     assert isinstance(df, pd.DataFrame), "`df`must be of type pandas.DataFrame"
     df[description_column] = df.apply(lambda x: x[description_column].replace(x[name_column], replacement), axis = 1)   
     return df
 
 def load_xlm_pretrained(path_to_model = None, n_targets: int = 16):
+    """
+    Load the xlm-roberta-base model from either the Huggingface hub or a local directory.
+    """
     if path_to_model:
         tokenizer = AutoTokenizer.from_pretrained(path_to_model)
         model = AutoModelForSequenceClassification.from_pretrained(path_to_model, num_labels = n_targets)
@@ -54,6 +78,9 @@ def load_xlm_pretrained(path_to_model = None, n_targets: int = 16):
 
 def random_data_split(df, x: str = "employer_description", y: str = "industry", validation_set = True, 
                       test_size: float = 0.15, val_size: float = 0.25, random_state = 10082023):
+    """
+    Splits samples randomly into training, testing and validation sets.
+    """
     x_train, x_test, y_train, y_test = train_test_split(df[x], df[y], test_size= test_size, random_state=random_state, stratify=df[y])
     if validation_set:
         x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=val_size, random_state=random_state, stratify=y_train)
@@ -66,6 +93,10 @@ def split_by_employers(df, x = "employer_description", y = "industry",
                        validation_set = True, test_size: float = 0.15, 
                        val_size: float = 0.25, random_state = 8082023
                        ):
+    """
+    Assignes the samples of employers randomly either to training, testing or validation sets. This is recommended
+    if more than one posting per employer is in the dataset, since these can be very similar and create data leakage.
+    """
     company_counts = pd.DataFrame(df.groupby(["company_name"])["company_name"].count().sample(frac = 1, random_state = random_state))
     company_counts["cumsum"] = company_counts["company_name"].cumsum()
 
@@ -109,6 +140,9 @@ def split_by_employers(df, x = "employer_description", y = "industry",
 def partition_data(df, x, y, split_by : str = "random",
                    validation_set = True, test_size: float = 0.15,
                    val_size: float = 0.25, random_state = 8082023):
+    """
+    Splits the data either randomly or based on employers into training, testing and validation sets.
+    """
     if split_by == "random":
         return random_data_split(df = df, x = x, y = y, validation_set=validation_set, test_size=test_size, val_size=val_size, random_state=random_state)
     elif split_by == "employers":
@@ -117,15 +151,24 @@ def partition_data(df, x, y, split_by : str = "random",
         raise ValueError("Set the `split_by` parameter to either 'random' or 'employers'.")
 
 def get_label_encoder(y):
+    """
+    Loading and fitting a label encoder.
+    """
     le = LabelEncoder()
     le.fit(y)
     return le
 
 def encode_labels(label_encoder, y, torch_dtype = torch.int32):
+    """
+    Encoding labels `y` using a label encoder `le`. 
+    """
     labels = torch.tensor(label_encoder.transform(y), dtype=torch_dtype)
     return labels
 
 class IndustryClassificationDataset(Dataset):
+    """"
+    Dataset class for training the classifier.
+    """
     def __init__(self, targets, texts) -> None:
         super().__init__()
         self.targets = targets
@@ -141,7 +184,7 @@ class IndustryClassificationDataset(Dataset):
 
 def evaluate_finetuned(model, eval_loader, device, return_acc = True, return_predicted_classes = False):
     """
-    Evaluate on testing set
+    Evaluating a model on testing set using an `eval_loader`.
     """
     with torch.no_grad():
         model.to(device)
@@ -170,7 +213,7 @@ def evaluate_finetuned(model, eval_loader, device, return_acc = True, return_pre
 def finetune(model, n_epochs : int, train_loader, device : str, optimizer, 
              eval_loader = None, return_finetuned_model: bool = True, silent_training = False):
     """
-    Finetune a certain model using a training and evaluation pipeline.
+    Finetune a certain base classifier `model` using a torch Dataloader for training and evaluation sets.
     """
     
     model.to(device)
@@ -218,6 +261,9 @@ def finetune(model, n_epochs : int, train_loader, device : str, optimizer,
         print("Training finished.")
 
 def get_model_report(model, eval_loader, label_encoder, device = "cuda"):
+    """
+    Derive a model report indicating precision, recall and f1 scores for each class.
+    """
     predicted_classes = evaluate_finetuned(
         model = model, eval_loader = eval_loader, 
         device = device, return_acc=False, return_predicted_classes=True)
@@ -227,48 +273,48 @@ def get_model_report(model, eval_loader, label_encoder, device = "cuda"):
         digits=3, target_names=label_encoder.classes_, zero_division=1)
     return report
 
+
 if __name__ == "__main__":
     
-    # data parameters:
+    # parameters regarding the training dataset:
     TRAIN_DAT = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv"
     ONLY_UNIQUE_EMPLOYERS = False
-    MACRO_INDUSTRY_GROUPS = True
-    MAX_SAMPLES_PER_INDUSTRY = 400
+    INDUSTRY_LEVEL = "pharma" # must be one of "pharma", "macro", "meso" or None
+    MAX_SAMPLES_PER_INDUSTRY = 300
 
-    # training data parameters:
+    # parameters indicating preprocessing of the training data:
     BLIND_EMPLOYER_NAMES = True
     SPLIT_BY = "employers"
 
-    # training process parameters:
-    SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer.pt"
+    # parameters for learning:
+    SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     BATCH_SIZE = 16
     EPOCHS = 2
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
-    # load data
+    # loading the dataset
     if ONLY_UNIQUE_EMPLOYERS:
         df = load_labelled(path=TRAIN_DAT).drop_duplicates(subset=["company_name"]).reset_index(drop=True)
     else:
         df = load_labelled(path = TRAIN_DAT)
-    if MACRO_INDUSTRY_GROUPS:
-        df = relabel(df=df, label_column="industry")
+    df = restrict_industry_level(df=df, industry_level=INDUSTRY_LEVEL)
     if MAX_SAMPLES_PER_INDUSTRY:
         df = subsample_df(df=df, group_col="industry", max_n_per_group = MAX_SAMPLES_PER_INDUSTRY)
     print("Total number of samples in the dataset: ", len(df))
     print("Class distribution:")
     print(df.groupby(["industry"])["industry"].count().sort_values(ascending=False))
 
-    # process data and split into partitions
+    # processing the data and splitting into partitions
     if BLIND_EMPLOYER_NAMES:
         df = blind_employer_names(df=df, description_column="employer_description", name_column="company_name", replacement="this company")
     x_train, x_test, y_train, y_test = partition_data(df = df, split_by = SPLIT_BY,
                                                       x="employer_description", y = "industry", validation_set=False,
-                                                      test_size=0.15, random_state=8082023)
+                                                      test_size=0.2, random_state=8082023)
     print("Number of training samples: %d" %len(x_train))
     print("Number of testing samples: %d" %len(x_test))
 
-    # load encoder, tokenizer and model
+    # loading encoder, tokenizer and model
     le = get_label_encoder(y = df["industry"])
     tokenizer, model = load_xlm_pretrained(
         path_to_model = "../hf_models/xlm-roberta-base", 
@@ -323,5 +369,9 @@ if __name__ == "__main__":
             batch_size = BATCH_SIZE, shuffle = True)
         finetuned_model = finetune(model = model, n_epochs = EPOCHS, train_loader = train_dl, optimizer=optim, 
                                    silent_training=True, device= DEVICE, return_finetuned_model=True)
+        # save model and label-dictionary:
+        label_dict = {i : k for i, k in enumerate(le.classes_)}
+        with open(SAVE_MODEL_PATH[:-2] + "json", "w") as f:
+            json.dump(label_dict, f)
         torch.save(finetuned_model, SAVE_MODEL_PATH)
-        print("Model saved at: ", SAVE_MODEL_PATH)
+        print("Model saved as: ", SAVE_MODEL_PATH)
