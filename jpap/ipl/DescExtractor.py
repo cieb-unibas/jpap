@@ -94,7 +94,7 @@ class DescExtractor(object):
         self._log_retrieved(by = "zsc")
 
     def __call__(self, employer_names: list = None, use_zsc = True):
-        if employer_names != None:
+        if employer_names is not None:
             self.sentences_by_name(employer_names=employer_names)
         if use_zsc:
             self.zsc_path = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/hf_models/multilingual-MiniLMv2-L6-mnli-xnli/"

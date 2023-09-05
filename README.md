@@ -1,14 +1,8 @@
-# jpap
-jpap ('job postings analyses pipelines') contains different pipelines for in-depth analysis of job postings.
-
-## To-Do's
-- finetune pre-trained model on industry dataset
-- translation pipeline using fine-tuned encoder-decoder architecture
-- ...
+# JPAP
+The idea of JPAP ('job postings analyses pipelines') is to create different pipelines for in-depth analysis of job postings contained in the CIEB Job Postings Database (JPOD).
 
 ## Installation
 
-#### Step 1
 `cd` into this repository, setup a virtual environment via and install dependencies:
 
 Using conda
@@ -24,18 +18,11 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### Step 2
-Check for GPU support on your machine and setup `PyTorch` according to the [developer website](https://pytorch.org/).
+#### Troubleshooting
+If you encounter problems installing the dependencies for JPAP, check for GPU support on your machine and setup `PyTorch` manually according to the [developer website](https://pytorch.org/). Consider doing the same  for the `transformers` library as specified by [Huggingface](https://huggingface.co/docs/transformers/installation):
 
-#### Step 3
-Install the `transformers` library as specified by [Huggingface](https://huggingface.co/docs/transformers/installation):
-
-```bash
-conda install -c huggingface transformers
-```
 
 ## Job Postings Industry Pipeline (IPL)
-
 
 ### How?
 - IPL **leverages pre-trained language models** for feature extraction and classification. Feature extraction is based on the `multilingual-MiniLMv2-L6-mnli-xnli` model, a version of `XLM-RoBERTa-large` finetuned on the `XNLI` and `MNLI` datasets for zero-shot-classification. 
@@ -48,3 +35,6 @@ conda install -c huggingface transformers
 
 ## Jop Postings Translation Pipeline (TPL)
 Multilingual translations for job postings.
+
+- Work in Progress
+- Consider using a translation pipeline using fine-tuned encoder-decoder architecture: Check the following [paper](https://arxiv.org/pdf/2010.11125.pdf), [code][https://github.com/kadirnar/Multilingual-Translation] and [model][https://huggingface.co/facebook/m2m100_418M] from Facebook AI.

@@ -4,22 +4,19 @@ import pandas as pd
 
 from jpap import get_company_postings, IPL
 
-
 # get postings
 jpod_conn = sqlite3.connect("/scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpod_test.db")
-company = "moderna"
-postings = get_company_postings(con = jpod_conn, companies= [company], institution_name=True)["job_description"]
+companies = ["moderna", "roche", "biontech", "novartis"]
+df = get_company_postings(con = jpod_conn, companies = companies, institution_name=True)
+company_names = df["company_name"].to_list()
+postings_texts = df["job_description"].to_list()
 
-# classify all postings
+# classify postings
 classifier = IPL(classifier="pharma")
-industry_predictions = classifier(postings = postings, company_names = [company] * len(postings))
+df["industry"] = classifier(postings = postings_texts, company_names = company_names)
 
-# summarize
-df = pd.DataFrame(
-    {"postings_text": postings,
-     "company": [company] * len(postings),
-     "predicted_industry": industry_predictions}
-     )
-final_label = df["predicted_industry"].value_counts().sort_values().index.to_list()[0]
-
-print(f'"{company} is predicted to be part of the following industry: {final_label}"')
+# classify companies
+company_industry_labels = df.groupby(["company_name"]).apply(lambda x: x["industry"].value_counts().index[0])
+company_industry_labels = {c: i for c in company_industry_labels.index.to_list() for i in company_industry_labels.to_list()}
+for company, industry in company_industry_labels.items():
+    print(f'"{company} is predicted to be part of the following industry: {industry}"')

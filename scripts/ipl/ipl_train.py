@@ -186,8 +186,9 @@ def evaluate_finetuned(model, eval_loader, device, return_acc = True, return_pre
     """
     Evaluating a model on testing set using an `eval_loader`.
     """
+    model.to(device)
+    model.eval()
     with torch.no_grad():
-        model.to(device)
         predicted_classes = {"y_pred": [], "y_true": []}
         correct_samples, n_samples = 0, 0
         for batch in eval_loader:
@@ -215,13 +216,11 @@ def finetune(model, n_epochs : int, train_loader, device : str, optimizer,
     """
     Finetune a certain base classifier `model` using a torch Dataloader for training and evaluation sets.
     """
-    
     model.to(device)
-    
+
     for epoch in range(n_epochs):
-        
-        epoch_start_time = time.time()
         model.train()
+        epoch_start_time = time.time()
         correct_samples, n_samples = 0, 0
 
         for i, batch in enumerate(train_loader):
@@ -289,8 +288,8 @@ if __name__ == "__main__":
     # parameters for learning:
     SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    BATCH_SIZE = 16
-    EPOCHS = 2
+    BATCH_SIZE = 32
+    EPOCHS = 3
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
     # loading the dataset
@@ -343,7 +342,6 @@ if __name__ == "__main__":
 
     # configurations for finetuning the model
     model.to(DEVICE)
-    model.train()
     optim = torch.optim.Adam(model.parameters(), lr=5e-5)
     finetuned_model = finetune(
         model = model, n_epochs = EPOCHS, optimizer=optim,

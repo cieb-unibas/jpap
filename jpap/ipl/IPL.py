@@ -40,15 +40,16 @@ class IPL(object):
     def __call__(self, postings, company_names: list = None, return_probas = False):
         # get the employer descriptions
         extractor = DescExtractor(postings=postings)
-        if company_names:
+        if company_names is not None:
             employer_description = extractor(employer_names=company_names, use_zsc=True)
         else:
             employer_description = extractor(use_zsc=True)
         # tokenize the employer descriptions
         x_tokenized = self.tokenizer(employer_description, return_tensors="pt", truncation=True, max_length=128, padding=True)
         # predict industry labels
+        self.classifier.to(self.device)
+        self.classifier.eval()
         with torch.no_grad():
-            self.classifier.to(self.device)
             x = x_tokenized["input_ids"].to(self.device)
             mask = x_tokenized["attention_mask"].to(self.device)
             outputs = self.classifier(x, attention_mask = mask)
