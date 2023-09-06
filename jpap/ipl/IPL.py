@@ -55,8 +55,9 @@ class IPL(object):
             outputs = self.classifier(x, attention_mask = mask)
             predicted_probas = outputs["logits"]
             predicted_classes = torch.argmax(predicted_probas, dim = 1).tolist()
-        # convert to strings and return
+        # convert to original labels
         predicted_classes = [self.labels[str(k)] for k in predicted_classes]
+        
         if return_probas:
             return predicted_classes, predicted_probas
         else:

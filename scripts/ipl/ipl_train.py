@@ -286,7 +286,6 @@ if __name__ == "__main__":
     SPLIT_BY = "employers"
 
     # parameters for learning:
-    INFERENCE = True
     RETRAIN_ON_FULL_DATASET = False
     SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -376,59 +375,6 @@ if __name__ == "__main__":
             json.dump(label_dict, f)
         torch.save(finetuned_model, SAVE_MODEL_PATH)
         print("Model saved as: ", SAVE_MODEL_PATH)
-
-    # check what happens if not saving but directly applying the model in-script
-    if INFERENCE:
-        import sqlite3
-        from jpap import get_company_postings, DescExtractor, IPL
-
-        # get samples
-        jpod_conn = sqlite3.connect("/scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpod_test.db")
-        companies = [
-            "roche", "novartis", "sbb", "credit suisse", "google", "holcim", 
-            "abb", "inselspital", #"postfinance", "axpo", "universität bern",
-            #"sbb cff ffs", "grand hotel des bains kempinski st. moritz"
-            ]
-        df = get_company_postings(con = jpod_conn, companies = companies, institution_name=True)
-        df = subsample_df(df=df, group_col="company_name", max_n_per_group=5).reset_index(drop=True)
-        company_names = df["company_name"].to_list()
-        postings = df["job_description"].to_list()
-
-        # process the samples
-        extractor = DescExtractor(postings = postings)
-        postings_texts = extractor(employer_names=company_names, use_zsc=True)
-        postings_texts = tokenizer(postings_texts, return_tensors="pt", truncation=True, max_length=128, padding=True)
-        
-        # inference
-        finetuned_model.to(DEVICE)
-        finetuned_model.eval()
-        with torch.no_grad():
-            x = postings_texts["input_ids"].to(DEVICE)
-            mask = postings_texts["attention_mask"].to(DEVICE)
-            outputs = finetuned_model(x, attention_mask = mask)
-            predicted_probas = outputs["logits"]
-            predicted_classes = torch.argmax(predicted_probas, dim = 1).tolist()
-        df["industry_class"] = predicted_classes
-        df["industry_label"] = le.inverse_transform(predicted_classes)
-        print("--------------Classification using in-script approach:--------------")
-        print(df.loc[:, ["company_name", "industry_class", "industry_label"]])
-        company_industry_labels = df.groupby(["company_name"]).apply(lambda x: x["industry_label"].value_counts().index[0])
-        company_industry_labels = {c: i for c in company_industry_labels.index.to_list() for i in company_industry_labels.to_list()}
-        for company, industry in company_industry_labels.items():
-            print(f'"{company} is predicted to be part of the following industry: {industry}"')
-
-        # using IPL
-        print("--------------Classification using pipeline approach:--------------")
-        classifier = IPL(classifier="pharma")
-        df["industry_loaded_model"] = classifier(postings = postings, company_names = company_names)
-        print(df.loc[:, ["company_name", "industry_label", "industry_loaded_model"]])
-        company_industry_labels = df.groupby(["company_name"]).apply(lambda x: x["industry_label"].value_counts().index[0])
-        company_industry_labels = {c: i for c in company_industry_labels.index.to_list() for i in company_industry_labels.to_list()}
-        for company, industry in company_industry_labels.items():
-            print(f'"{company} is predicted to be part of the following industry: {industry}"')
-
-
-
 
         
 

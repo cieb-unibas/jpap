@@ -58,7 +58,7 @@ class DescExtractor(object):
         if len(self.retrieved_by) > 1:
             self.retrieved_by = list(set(self.retrieved_by))
     
-    def sentences_by_name(self, employer_names, log_number = 200):
+    def sentences_by_name(self, employer_names, log_number = 200, silent_mode = True):
         """
         Extract all sentences from job postings that feature the company name.
         """
@@ -68,14 +68,14 @@ class DescExtractor(object):
         for i, t in enumerate(self._tokenized_input):
             employer_desc = " ".join([s for s in t if employer_names[i] in s.lower()])
             self._assign_empdesc(desc = employer_desc, idx = i)
-            if i % log_number == 0:
+            if i % log_number == 0 and not silent_mode:
                 print("Applied name-based extraction to %d postings" % i)
         self._log_retrieved(by = "name")
    
     def sentences_by_zsc(
             self, classifier, targets: list[str], 
             excluding_classes: list[str] = ["address", "benefits"], 
-            log_number: int = 200
+            log_number: int = 200, silent_mode = True
             ):
         """
         Extract all sentences from job postings that are labelled by a zero-shot-classifier to
@@ -89,7 +89,7 @@ class DescExtractor(object):
             employer_sentences = [classifier(s, candidate_labels = labels) for s in t]
             employer_desc = " ".join([s["sequence"] for s in employer_sentences if s["labels"][0] in targets])
             self._assign_empdesc(desc = employer_desc, idx = i)
-            if i % log_number == 0:
+            if i % log_number == 0 and not silent_mode:
                 print("Applied zero-shot extration to %d postings" % i)
         self._log_retrieved(by = "zsc")
 
