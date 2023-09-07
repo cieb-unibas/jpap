@@ -1,0 +1,59 @@
+Training the model on cuda over 2 epochs in batches of size 32.
+Total number of samples in the dataset:  2400
+Class distribution:
+industry
+education & public administration    400
+health                               400
+manufacturing                        400
+pharmaceutical and life sciences     400
+research & academia                  400
+services                             400
+Name: industry, dtype: int64
+Number of training samples: 1921
+Number of testing samples: 479
+Baseline accuracies for the training dataset:
+ ZeroR: 0.186
+ RandomGuessing: 0.001
+Epoch 1: 1/61 data batches processed | Training Accuracy: 0.062 | Training time batch: 0.948 seconds
+Epoch 1: 6/61 data batches processed | Training Accuracy: 0.172 | Training time batch: 0.171 seconds
+Epoch 1: 11/61 data batches processed | Training Accuracy: 0.216 | Training time batch: 0.171 seconds
+Epoch 1: 16/61 data batches processed | Training Accuracy: 0.256 | Training time batch: 0.174 seconds
+Epoch 1: 21/61 data batches processed | Training Accuracy: 0.305 | Training time batch: 0.171 seconds
+Epoch 1: 26/61 data batches processed | Training Accuracy: 0.364 | Training time batch: 0.171 seconds
+Epoch 1: 31/61 data batches processed | Training Accuracy: 0.408 | Training time batch: 0.171 seconds
+Epoch 1: 36/61 data batches processed | Training Accuracy: 0.444 | Training time batch: 0.171 seconds
+Epoch 1: 41/61 data batches processed | Training Accuracy: 0.482 | Training time batch: 0.171 seconds
+Epoch 1: 46/61 data batches processed | Training Accuracy: 0.502 | Training time batch: 0.171 seconds
+Epoch 1: 51/61 data batches processed | Training Accuracy: 0.530 | Training time batch: 0.171 seconds
+Epoch 1: 56/61 data batches processed | Training Accuracy: 0.553 | Training time batch: 0.171 seconds
+Epoch 1: 61/61 data batches processed | Training Accuracy: 0.566 | Training time batch: 0.312 seconds
+------Epoch 1/2 | Training Accuracy: 0.566 | Validation Accuracy: 0.714 | Training time epoch: 0.189 minutes------
+Epoch 2: 1/61 data batches processed | Training Accuracy: 0.781 | Training time batch: 0.170 seconds
+Epoch 2: 6/61 data batches processed | Training Accuracy: 0.807 | Training time batch: 0.171 seconds
+Epoch 2: 11/61 data batches processed | Training Accuracy: 0.810 | Training time batch: 0.171 seconds
+Epoch 2: 16/61 data batches processed | Training Accuracy: 0.789 | Training time batch: 0.171 seconds
+Epoch 2: 21/61 data batches processed | Training Accuracy: 0.812 | Training time batch: 0.171 seconds
+Epoch 2: 26/61 data batches processed | Training Accuracy: 0.816 | Training time batch: 0.171 seconds
+Epoch 2: 31/61 data batches processed | Training Accuracy: 0.825 | Training time batch: 0.171 seconds
+Epoch 2: 36/61 data batches processed | Training Accuracy: 0.829 | Training time batch: 0.171 seconds
+Epoch 2: 41/61 data batches processed | Training Accuracy: 0.831 | Training time batch: 0.171 seconds
+Epoch 2: 46/61 data batches processed | Training Accuracy: 0.829 | Training time batch: 0.171 seconds
+Epoch 2: 51/61 data batches processed | Training Accuracy: 0.830 | Training time batch: 0.171 seconds
+Epoch 2: 56/61 data batches processed | Training Accuracy: 0.830 | Training time batch: 0.171 seconds
+Epoch 2: 61/61 data batches processed | Training Accuracy: 0.832 | Training time batch: 0.043 seconds
+------Epoch 2/2 | Training Accuracy: 0.832 | Validation Accuracy: 0.731 | Training time epoch: 0.172 minutes------
+Training finished. Returning fine-tuned model
+                                   precision    recall  f1-score   support
+
+education & public administration      0.859     0.768     0.811        95
+                           health      0.788     0.905     0.843        74
+                    manufacturing      0.587     0.620     0.603        71
+ pharmaceutical and life sciences      0.536     0.881     0.667        42
+              research & academia      0.806     0.730     0.766        74
+                         services      0.765     0.610     0.679       123
+
+                         accuracy                          0.731       479
+                        macro avg      0.724     0.752     0.728       479
+                     weighted avg      0.747     0.731     0.731       479
+
+Model saved as:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_macro.pt

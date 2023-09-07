@@ -1,72 +1,38 @@
-import sqlite3
 import pandas as pd
 
-def get_postings(
-        con: sqlite3.Connection, 
-        institution_name: bool = False, 
-        html: bool = False, 
-        sample_size = False, 
-        language: str = None) -> pd.DataFrame:
-    """
-    Retrieve postings text from JPOD.
-    """
-    retrieve_cols = "jp.uniq_id, jp.text_language, jp.job_description"
-    language_condition = ""
-    limit_condition = ""
-    join_statement = ""
+def _define_targets(inputs):
+    targets = sorted(list(set(inputs)))
+    n_classes = len(targets)
+    target_idx = {targets[i]: i for i in range(n_classes)}
+    return target_idx
+
+def encode_labels(inputs, return_label_dict = True):
+    label_dict = _define_targets(inputs=inputs)
+    encoded_labels = [label_dict[t] for t in inputs]
+    if return_label_dict:
+        return encoded_labels, label_dict
+    else:
+        return encoded_labels
 
 
-    if institution_name:
-        retrieve_cols += ", pc.company_name"
-        join_statement = "LEFT JOIN position_characteristics pc on jp.uniq_id = pc.uniq_id"
-    if html:
-        retrieve_cols += ", jp.html_job_description"
-    if language:
-        language_condition = "AND text_language == '%s'" % language
-    if sample_size:
-        assert isinstance(sample_size, int)
-        limit_condition = "LIMIT %d" % sample_size
-    
-    query = """
-    SELECT %s
-    FROM (
-        SELECT *
-        FROM job_postings
-        WHERE unique_posting_text == 'yes' %s
-        %s
-        ) jp
-    %s
-    """ % (retrieve_cols, language_condition, limit_condition, join_statement)
+def subsample_df(
+        df: pd.DataFrame, group_col: str, seed = 4082023,
+        max_n_per_group : int = 500, max_n_overall: int = None
+        ):
+    group_counts = {
+        k: n if n < max_n_per_group else max_n_per_group for k, n in 
+        dict(df.groupby([group_col])[group_col].count()).items()
+        }
+    df_out = pd.DataFrame()
+    for g, n in group_counts.items():
+        tmp = df.loc[df[group_col] == g, :].sample(n = n, random_state = seed).reset_index(drop=True)
+        df_out = pd.concat([df_out, tmp], axis = 0)
+    if max_n_overall:
+        if len(df_out) > max_n_overall:
+            df_out = df_out.reset_index(drop=True).sample(max_n_overall)
 
-    return pd.read_sql(query, con)
+    return df_out
 
-def get_company_postings(con, companies, institution_name: bool = False, html: bool = False, language: str = None):
-    retrieve_cols = "jp.uniq_id, jp.text_language, jp.job_description"
-    language_condition = ""
-    join_statement = ""
-
-    if institution_name:
-        retrieve_cols += ", pc.company_name"
-        join_statement = "LEFT JOIN position_characteristics pc on jp.uniq_id = pc.uniq_id"
-    if html:
-        retrieve_cols += ", jp.html_job_description"
-    if language:
-        language_condition = "AND text_language == '%s'" %language
-    
-    query = """
-    SELECT %s
-    FROM (
-        SELECT *
-        FROM job_postings
-        WHERE unique_posting_text == 'yes'
-        AND uniq_id IN (SELECT uniq_id FROM position_characteristics WHERE company_name IN (%s))
-        %s
-        ) jp
-    %s
-    """ % (retrieve_cols, str(companies)[1:-1], language_condition, join_statement)
-
-    return pd.read_sql(query, con)
-    
 class PostingsTranslator():
     def __init__(self, target_language = "en"):
         self.target_language = target_language

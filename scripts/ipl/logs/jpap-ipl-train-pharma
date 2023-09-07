@@ -1,0 +1,30 @@
+Training the model on cuda over 1 epochs in batches of size 32.
+Total number of samples in the dataset:  1099
+Class distribution:
+industry
+other                               600
+pharmaceutical and life sciences    499
+Name: industry, dtype: int64
+Number of training samples: 885
+Number of testing samples: 214
+Baseline accuracies for the training dataset:
+ ZeroR: 0.539
+ RandomGuessing: 0.001
+Epoch 1: 1/28 data batches processed | Training Accuracy: 0.688 | Training time batch: 0.847 seconds
+Epoch 1: 6/28 data batches processed | Training Accuracy: 0.599 | Training time batch: 0.171 seconds
+Epoch 1: 11/28 data batches processed | Training Accuracy: 0.602 | Training time batch: 0.171 seconds
+Epoch 1: 16/28 data batches processed | Training Accuracy: 0.643 | Training time batch: 0.171 seconds
+Epoch 1: 21/28 data batches processed | Training Accuracy: 0.705 | Training time batch: 0.173 seconds
+Epoch 1: 26/28 data batches processed | Training Accuracy: 0.746 | Training time batch: 0.171 seconds
+------Epoch 1/1 | Training Accuracy: 0.755 | Validation Accuracy: 0.893 | Training time epoch: 0.091 minutes------
+Training finished. Returning fine-tuned model
+                                  precision    recall  f1-score   support
+
+                           other      0.939     0.870     0.903       123
+pharmaceutical and life sciences      0.840     0.923     0.880        91
+
+                        accuracy                          0.893       214
+                       macro avg      0.889     0.896     0.891       214
+                    weighted avg      0.897     0.893     0.893       214
+
+Model saved as:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_pharma.pt

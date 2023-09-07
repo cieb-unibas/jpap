@@ -1,0 +1,102 @@
+Current directory is:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpap
+Extracting employer descriptions by name-searches AND zero-shot sentence classifier.
+Applied name-based extraction to 0 postings
+Applied name-based extraction to 200 postings
+Applied name-based extraction to 400 postings
+Applied name-based extraction to 600 postings
+Applied name-based extraction to 800 postings
+Applied name-based extraction to 1000 postings
+Applied name-based extraction to 1200 postings
+Applied name-based extraction to 1400 postings
+Applied name-based extraction to 1600 postings
+Applied name-based extraction to 1800 postings
+Applied name-based extraction to 2000 postings
+Applied name-based extraction to 2200 postings
+Applied name-based extraction to 2400 postings
+Applied name-based extraction to 2600 postings
+Applied name-based extraction to 2800 postings
+Applied name-based extraction to 3000 postings
+Applied name-based extraction to 3200 postings
+Applied name-based extraction to 3400 postings
+Applied name-based extraction to 3600 postings
+Applied name-based extraction to 3800 postings
+Applied name-based extraction to 4000 postings
+Applied name-based extraction to 4200 postings
+Applied name-based extraction to 4400 postings
+Applied name-based extraction to 4600 postings
+Applied name-based extraction to 4800 postings
+Applied name-based extraction to 5000 postings
+Applied name-based extraction to 5200 postings
+Applied name-based extraction to 5400 postings
+Applied name-based extraction to 5600 postings
+Applied name-based extraction to 5800 postings
+Applied name-based extraction to 6000 postings
+Applied name-based extraction to 6200 postings
+Applied name-based extraction to 6400 postings
+Applied name-based extraction to 6600 postings
+Applied name-based extraction to 6800 postings
+Applied name-based extraction to 7000 postings
+Applied name-based extraction to 7200 postings
+Applied name-based extraction to 7400 postings
+Applied name-based extraction to 7600 postings
+Applied name-based extraction to 7800 postings
+Applied name-based extraction to 8000 postings
+Applied name-based extraction to 8200 postings
+Applied name-based extraction to 8400 postings
+Applied name-based extraction to 8600 postings
+Applied name-based extraction to 8800 postings
+Applied zero-shot extration to 0 postings
+Applied zero-shot extration to 200 postings
+Applied zero-shot extration to 400 postings
+Applied zero-shot extration to 600 postings
+Applied zero-shot extration to 800 postings
+Applied zero-shot extration to 1000 postings
+Applied zero-shot extration to 1200 postings
+Applied zero-shot extration to 1400 postings
+Applied zero-shot extration to 1600 postings
+Applied zero-shot extration to 1800 postings
+Applied zero-shot extration to 2000 postings
+Applied zero-shot extration to 2200 postings
+Applied zero-shot extration to 2400 postings
+Applied zero-shot extration to 2600 postings
+Applied zero-shot extration to 2800 postings
+Applied zero-shot extration to 3000 postings
+Applied zero-shot extration to 3200 postings
+Applied zero-shot extration to 3400 postings
+Applied zero-shot extration to 3600 postings
+Applied zero-shot extration to 3800 postings
+Applied zero-shot extration to 4000 postings
+Applied zero-shot extration to 4200 postings
+Applied zero-shot extration to 4400 postings
+Applied zero-shot extration to 4600 postings
+Applied zero-shot extration to 4800 postings
+Applied zero-shot extration to 5000 postings
+Applied zero-shot extration to 5200 postings
+Applied zero-shot extration to 5400 postings
+Applied zero-shot extration to 5600 postings
+Applied zero-shot extration to 5800 postings
+Applied zero-shot extration to 6000 postings
+Applied zero-shot extration to 6200 postings
+Applied zero-shot extration to 6400 postings
+Applied zero-shot extration to 6600 postings
+Applied zero-shot extration to 6800 postings
+Applied zero-shot extration to 7000 postings
+Applied zero-shot extration to 7200 postings
+Applied zero-shot extration to 7400 postings
+Applied zero-shot extration to 7600 postings
+Applied zero-shot extration to 7800 postings
+Applied zero-shot extration to 8000 postings
+Applied zero-shot extration to 8200 postings
+Applied zero-shot extration to 8400 postings
+Applied zero-shot extration to 8600 postings
+Applied zero-shot extration to 8800 postings
+********** Extracted employer descriptions for 8736 postings from the database.**********
+Training dataset saved to /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv
+                                employer_description  ...                                           industry
+0  What will I be doing? Since being founded in 1...  ...  accommodation, hotel, restaurants and food ser...
+1  Click on Apply Now to Apply for this Position!...  ...  accommodation, hotel, restaurants and food ser...
+2  Das 5* Romantik Hotel Schweizerhof ist ein pri...  ...  accommodation, hotel, restaurants and food ser...
+3  Who we are We opened the first Wildwood in 200...  ...  accommodation, hotel, restaurants and food ser...
+4  Du liebst die Berge und arbeitest gern im Team...  ...  accommodation, hotel, restaurants and food ser...
+
+[5 rows x 3 columns]
