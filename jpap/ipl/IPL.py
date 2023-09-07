@@ -12,7 +12,7 @@ class IPL(object):
     """
     def __init__(self, classifier : str = "pharma"):
         self.classifier_type = classifier
-        self.path = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_" + self.classifier_type
+        self.path = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/trained_models/ipl_classifer_" + self.classifier_type
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.classifier = self.load_classifier()
         self.labels = self.load_labels()

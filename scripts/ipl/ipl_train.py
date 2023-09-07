@@ -287,7 +287,7 @@ if __name__ == "__main__":
 
     # parameters for learning:
     RETRAIN_ON_FULL_DATASET = False
-    SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
+    SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/trained_models/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     BATCH_SIZE = 128
     EPOCHS = 5
