@@ -44,6 +44,8 @@ class IPL(object):
             employer_description = extractor(employer_names=company_names, use_zsc=True)
         else:
             employer_description = extractor(use_zsc=True)
+        # take care of NAs
+        employer_description = [text if text else "no relevant information" for text in employer_description]
         # tokenize the employer descriptions
         x_tokenized = self.tokenizer(employer_description, return_tensors="pt", truncation=True, max_length=128, padding=True)
         # predict industry labels

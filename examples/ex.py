@@ -24,9 +24,13 @@ df = get_company_postings(con = jpod_conn, companies = companies, institution_na
 df = subsample_df(df=df, group_col="company_name", max_n_per_group=3).reset_index(drop=True)
 company_names = df["company_name"].to_list()
 postings_texts = df["job_description"].to_list()
+assert len(company_names) == len(postings_texts)
+print(f'"Predicting the industry association for {len(postings_texts)} postings of {len(set(company_names))} different companies"')
 
 # load pipeline and predict all postings
-industry_pipeline = IPL(classifier = "pharma")
+INDUSTRY_LEVEL = "nace"
+print(f'"Classification is performed at the following level: {INDUSTRY_LEVEL}"')
+industry_pipeline = IPL(classifier = INDUSTRY_LEVEL)
 df["industry"] = industry_pipeline(postings = postings_texts, company_names = company_names)
 
 # majority vote for every companies

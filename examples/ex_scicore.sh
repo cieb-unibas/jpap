@@ -4,10 +4,10 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 
-#SBATCH --time=00:30:00
+#SBATCH --time=00:10:00
 #SBATCH --qos=30min
 
-#SBATCH --output=examples/jpap-ipl
+#SBATCH --output=examples/jpap-ipl-nace
 #SBATCH --error=examples/jpap-ipl-errors
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=matthias.niggli@unibas.ch
