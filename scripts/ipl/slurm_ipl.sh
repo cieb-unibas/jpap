@@ -7,7 +7,7 @@
 #SBATCH --time=00:10:00
 #SBATCH --qos=30min
 
-#SBATCH --output=scripts/ipl/logs/jpap-ipl-train-pharma
+#SBATCH --output=scripts/ipl/logs/jpap-ipl-train-nace
 #SBATCH --error=scripts/ipl/logs/jpap-ipl-train-pharma-errors
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT
 #SBATCH --mail-user=matthias.niggli@unibas.ch

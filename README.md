@@ -23,68 +23,49 @@ If you encounter problems installing the dependencies for JPAP, check for GPU su
 
 
 ## Job Postings Industry Pipeline (IPL)
+JPOD does not feature any (reliable) information about the industries that job postings are associated with. The industry pipeline (IPL) is an attempt to solve this problem. IPL is powered by **pre-trained language models**, which it uses for feature extraction and classification (see explanations below). 
 
-### How?
-- IPL **leverages pre-trained language models** for feature extraction and classification. Feature extraction is based on the `multilingual-MiniLMv2-L6-mnli-xnli` model, a version of `XLM-RoBERTa-large` finetuned on the `XNLI` and `MNLI` datasets for zero-shot-classification. 
+IPL can be configured to assign postings to **four different industry levels: 'nace' 'meso', 'macro' and 'pharma'**. The corresponding industry mappings can be found in the ["data/"](./data/raw/) directory and performance reports of the trained models can be seen in the following ["logs/"](./scripts/ipl/logs/) directory. An overview is given in the table below.
 
-- IPL then follows a **weak supervision** approach with **labelling-fuctions** (LF) to label a subset of postings to industries. It does this based on companies, for which the ground truth is known (e.g. roche is from the pharmaceutical sector) as well as on certain patterns in the company name that can be unambigously assigned to specific industries (e.g. 'university', 'hospital' or 'restaurant').
+industry level|# industries|weighted F1
+---|---|---
+nace|18|68%
+meso|13|64%
+macro|6|73%
+pharma|2|89%
 
-- Since postings of the same companies can be very similar, **sampling** procedure is an issue because of potential data leakage when splitting training and test set. For example, a job posting of Roche could land in the training and another one in the testing set even though they are (practically) identical. For the IPL training the dataset was does split by employers so that all postings from a certain employer can either be in the test or in the validation set. Furthermore, company names are blinded for the classifier so that it does not classify postings to industries based on company names.
+### How to use IPL?
 
-- The IPL classifier is based on **transfer learning** as it is a fine-tuned version of the `XLM-RoBERTa` model, which in itself is a multilingual version of `RoBERTa` model that has been pre-trained on 2.5TB of filtered CommonCrawl data containing 100 languages by researchers at Facebook AI. 
+:warning: **IMPORTANT:** `IPL` makes use of two relatively large language models that are computationally expensive to use. Hence, you are strongly recommended to use the scicore cluster's GPUs via a slurm script (see <a href="./examples/main_scicore.sh">here</a> for an example).
 
-### Example
-Here is an example using the `IPL` pipeline to differentiate between pharmaceutical and non-pharmaceutical companies. 
+After you `cd` into this repository's directory, `IPL` can easily be loaded as follows:
 
 ```python
-import sqlite3
-
-from jpap.connect import get_company_postings
 from jpap.ipl import IPL
-from jpap.preprocessing import subsample_df
 
-# get postings for a set of companies (max. 5 postings per company)
-jpod_conn = sqlite3.connect("/scicore/home/weder/GROUP/Innovation/05_job_adds_data/jpod_test.db")
-companies = [
-            "roche", "novartis", "amgen", "bachem", "indorsia", "medartis", "johnson & johnson",
-            "alcon", "straumann", "helvetia", "die mobiliar", "bayer", "sanofi", "astrazeneca",
-            "sbb", "credit suisse", "google", "holcim", "tibits", "die post",
-            "abb", "inselspital", "postfinance", "axpo", "burgerking", "ypsomed",
-            "sbb cff ffs", "grand hotel des bains kempinski st. moritz"
-            ]
-df = get_company_postings(con = jpod_conn, companies = companies, institution_name=True)
-df = subsample_df(df=df, group_col="company_name", max_n_per_group=3).reset_index(drop=True)
-company_names = df["company_name"].to_list()
-postings_texts = df["job_description"].to_list()
-
-# load pipeline and predict all postings
-industry_pipeline = IPL(classifier = "pharma")
-df["industry"] = industry_pipeline(postings = postings_texts, company_names = company_names)
-
-# majority vote for every companies
-company_industry_labels = df.groupby(["company_name"]).apply(lambda x: x["industry"].value_counts().index[0]).to_dict()
-for company, industry in company_industry_labels.items():
-    print(f'"{company} is predicted to be part of the following industry: {industry}"')
+industry_pipeline = IPL(classifier = "macro")
 ```
+:exclamation: **A more extensive example highlighting how to use `IPL` together with `jpod` can be found  <a href='./examples/'>here</a>.**
 
-Sending this script to the cluster using `main_scicore.sh` so it can be processed by GPU's **yields the following result:**
+### How was IPL trained and how does it work?
+To train `IPL`, two particular challenges have to be apporached: The lack of labelled training data and a low signal-to-noise ratio in postings text.
 
-"abb is predicted to be part of the following industry: other"
-**"astrazeneca is predicted to be part of the following industry: pharmaceutical and life sciences"**
-"axpo is predicted to be part of the following industry: other"
-"credit suisse is predicted to be part of the following industry: other"
-"die mobiliar is predicted to be part of the following industry: other"
-"die post is predicted to be part of the following industry: other"
-"google is predicted to be part of the following industry: other"
-"grand hotel des bains kempinski st. moritz is predicted to be part of the following industry: other"
-"helvetia is predicted to be part of the following industry: other"
-"inselspital is predicted to be part of the following industry: other"
-**"johnson & johnson is predicted to be part of the following industry: pharmaceutical and life sciences"**
-**"novartis is predicted to be part of the following industry: pharmaceutical and life sciences"**
-"postfinance is predicted to be part of the following industry: other"
-**"roche is predicted to be part of the following industry: pharmaceutical and life sciences"**
-"sbb cff ffs is predicted to be part of the following industry: other"
-"tibits is predicted to be part of the following industry: other"
+The first refers to....
+
+The second aspect refers to the fact that a substantial part of job postings' texts is not related to the company that published the particular job opening. Rather it describes tasks and responsibilities, which can be very similar across industries. Think, for example, about a secratary in the pharmaceutical industry or within a law firm: Both of them have likely similar tasks. To differentiate industries, this text snippets do not contain any signal for a classifier and should thus be excluded. `IPL` implements a strategy to accomplish that, which is based on NLP and a pre-trained language model. 
+
+Once the (potentially) relevant parts of the text are identified, `IPL` uses a second language model on top for classification of job postings to industries. 
+
+Below are more comprehensive explanations.
+
+**Training Data**: IPL follows a **weak supervision** approach with **labelling-fuctions** to label a subset of postings to industries. It does this based on companies, for which the ground truth is known (e.g. roche is from the pharmaceutical sector) as well as on certain patterns in the company name that can be unambigously assigned to specific industries (e.g. 'university', 'hospital' or 'restaurant').
+
+Since postings of the same companies can be very similar, **sampling** procedure is an issue because of potential data leakage when splitting training and test set. For example, a job posting of Roche could land in the training and another one in the testing set even though they are (practically) identical. For the IPL training the dataset was does split by employers so that all postings from a certain employer can either be in the test or in the validation set. Furthermore, company names are blinded for the classifier so that it does not classify postings to industries based on company names.
+
+**Feature extraction:** is based on combining two strategies. First, all sentences in a job posting that mention the employer's name are considered relevant and extracted using keyword searches. Second, a zero-shot classification model is used to extract additional relevant sentences from the remaining text. For this purpose `IPL` builds on the <a href="https://huggingface.co/MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli">`multilingual-MiniLMv2-L6-mnli-xnli`</a> transformer model, which is a finetuned version of <a href="https://huggingface.co/xlm-roberta-large">`XLM-RoBERTa-large`</a> for multilingual zero-shot-classification (trained on the `XNLI` and `MNLI` datasets). Every sentence of a particular job posting is sent to this model, and if the model classifies it as a description of "who we are", "who this is" or an "industry or sector", it is also extracted.
+
+**Classification:** The IPL classifier is based on **transfer learning** as it is a fine-tuned version of the `XLM-RoBERTa` model, which in itself is a multilingual version of `RoBERTa` model that has been pre-trained on 2.5TB of filtered CommonCrawl data containing 100 languages by researchers at Facebook AI. 
+
 
 ## Jop Postings Translation Pipeline (TPL)
 Multilingual translations for job postings.

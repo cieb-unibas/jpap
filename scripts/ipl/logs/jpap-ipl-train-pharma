@@ -28,36 +28,3 @@ pharmaceutical and life sciences      0.840     0.923     0.880        91
                     weighted avg      0.897     0.893     0.893       214
 
 Model saved as:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_pharma.pt
-Applied name-based extraction to 0 postings
-Applied zero-shot extration to 0 postings
---------------Classification using in-script approach:--------------
-     company_name  industry_class                    industry_label
-0             abb               0                             other
-1             abb               0                             other
-2             abb               0                             other
-3             abb               0                             other
-4             abb               0                             other
-5   credit suisse               0                             other
-6   credit suisse               0                             other
-7   credit suisse               0                             other
-8   credit suisse               0                             other
-9   credit suisse               1  pharmaceutical and life sciences
-10         google               0                             other
-11         google               0                             other
-12         google               0                             other
-13         google               0                             other
-14         google               0                             other
-15    inselspital               0                             other
-16    inselspital               0                             other
-17    inselspital               0                             other
-18    inselspital               0                             other
-19       novartis               1  pharmaceutical and life sciences
-20       novartis               1  pharmaceutical and life sciences
-21       novartis               1  pharmaceutical and life sciences
-22       novartis               1  pharmaceutical and life sciences
-23       novartis               1  pharmaceutical and life sciences
-24          roche               1  pharmaceutical and life sciences
-25          roche               1  pharmaceutical and life sciences
-26          roche               1  pharmaceutical and life sciences
-27          roche               1  pharmaceutical and life sciences
-28          roche               1  pharmaceutical and life sciences

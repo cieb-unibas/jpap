@@ -1,0 +1,115 @@
+Training the model on cuda over 5 epochs in batches of size 128.
+Total number of samples in the dataset:  8736
+Class distribution:
+industry
+pharmaceutical and life sciences                         499
+legal and consulting                                     498
+medtech                                                  498
+information and communication                            497
+manufacturing                                            497
+financial and insurance                                  496
+transportation and storage                               494
+research and academia                                    491
+newspapers, television and media industry                491
+construction                                             490
+electricity and energy                                   488
+wholesale and retail stores                              487
+real estate                                              482
+medicine, health and hospital                            480
+public administration and international organizations    477
+arts, entertainment and recreation                       471
+accommodation, hotel, restaurants and food service       459
+education, teaching and schools                          441
+Name: industry, dtype: int64
+Number of training samples: 6989
+Number of testing samples: 1746
+Baseline accuracies for the training dataset:
+ ZeroR: 0.071
+ RandomGuessing: 0.000
+Epoch 1: 1/55 data batches processed | Training Accuracy: 0.055 | Training time batch: 1.286 seconds
+Epoch 1: 6/55 data batches processed | Training Accuracy: 0.059 | Training time batch: 0.574 seconds
+Epoch 1: 11/55 data batches processed | Training Accuracy: 0.058 | Training time batch: 0.579 seconds
+Epoch 1: 16/55 data batches processed | Training Accuracy: 0.068 | Training time batch: 0.579 seconds
+Epoch 1: 21/55 data batches processed | Training Accuracy: 0.106 | Training time batch: 0.574 seconds
+Epoch 1: 26/55 data batches processed | Training Accuracy: 0.169 | Training time batch: 0.575 seconds
+Epoch 1: 31/55 data batches processed | Training Accuracy: 0.240 | Training time batch: 0.572 seconds
+Epoch 1: 36/55 data batches processed | Training Accuracy: 0.297 | Training time batch: 0.572 seconds
+Epoch 1: 41/55 data batches processed | Training Accuracy: 0.345 | Training time batch: 0.579 seconds
+Epoch 1: 46/55 data batches processed | Training Accuracy: 0.385 | Training time batch: 0.572 seconds
+Epoch 1: 51/55 data batches processed | Training Accuracy: 0.425 | Training time batch: 0.578 seconds
+------Epoch 1/5 | Training Accuracy: 0.448 | Validation Accuracy: 0.621 | Training time epoch: 0.538 minutes------
+Epoch 2: 1/55 data batches processed | Training Accuracy: 0.812 | Training time batch: 0.577 seconds
+Epoch 2: 6/55 data batches processed | Training Accuracy: 0.812 | Training time batch: 0.572 seconds
+Epoch 2: 11/55 data batches processed | Training Accuracy: 0.813 | Training time batch: 0.578 seconds
+Epoch 2: 16/55 data batches processed | Training Accuracy: 0.818 | Training time batch: 0.578 seconds
+Epoch 2: 21/55 data batches processed | Training Accuracy: 0.823 | Training time batch: 0.579 seconds
+Epoch 2: 26/55 data batches processed | Training Accuracy: 0.826 | Training time batch: 0.575 seconds
+Epoch 2: 31/55 data batches processed | Training Accuracy: 0.830 | Training time batch: 0.572 seconds
+Epoch 2: 36/55 data batches processed | Training Accuracy: 0.835 | Training time batch: 0.576 seconds
+Epoch 2: 41/55 data batches processed | Training Accuracy: 0.838 | Training time batch: 0.572 seconds
+Epoch 2: 46/55 data batches processed | Training Accuracy: 0.836 | Training time batch: 0.575 seconds
+Epoch 2: 51/55 data batches processed | Training Accuracy: 0.839 | Training time batch: 0.579 seconds
+------Epoch 2/5 | Training Accuracy: 0.841 | Validation Accuracy: 0.655 | Training time epoch: 0.526 minutes------
+Epoch 3: 1/55 data batches processed | Training Accuracy: 0.859 | Training time batch: 0.575 seconds
+Epoch 3: 6/55 data batches processed | Training Accuracy: 0.875 | Training time batch: 0.578 seconds
+Epoch 3: 11/55 data batches processed | Training Accuracy: 0.879 | Training time batch: 0.579 seconds
+Epoch 3: 16/55 data batches processed | Training Accuracy: 0.879 | Training time batch: 0.579 seconds
+Epoch 3: 21/55 data batches processed | Training Accuracy: 0.882 | Training time batch: 0.577 seconds
+Epoch 3: 26/55 data batches processed | Training Accuracy: 0.883 | Training time batch: 0.573 seconds
+Epoch 3: 31/55 data batches processed | Training Accuracy: 0.887 | Training time batch: 0.573 seconds
+Epoch 3: 36/55 data batches processed | Training Accuracy: 0.886 | Training time batch: 0.575 seconds
+Epoch 3: 41/55 data batches processed | Training Accuracy: 0.885 | Training time batch: 0.576 seconds
+Epoch 3: 46/55 data batches processed | Training Accuracy: 0.887 | Training time batch: 0.574 seconds
+Epoch 3: 51/55 data batches processed | Training Accuracy: 0.887 | Training time batch: 0.578 seconds
+------Epoch 3/5 | Training Accuracy: 0.887 | Validation Accuracy: 0.629 | Training time epoch: 0.526 minutes------
+Epoch 4: 1/55 data batches processed | Training Accuracy: 0.906 | Training time batch: 0.575 seconds
+Epoch 4: 6/55 data batches processed | Training Accuracy: 0.911 | Training time batch: 0.576 seconds
+Epoch 4: 11/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.575 seconds
+Epoch 4: 16/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.575 seconds
+Epoch 4: 21/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.574 seconds
+Epoch 4: 26/55 data batches processed | Training Accuracy: 0.921 | Training time batch: 0.572 seconds
+Epoch 4: 31/55 data batches processed | Training Accuracy: 0.921 | Training time batch: 0.576 seconds
+Epoch 4: 36/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.572 seconds
+Epoch 4: 41/55 data batches processed | Training Accuracy: 0.921 | Training time batch: 0.576 seconds
+Epoch 4: 46/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.575 seconds
+Epoch 4: 51/55 data batches processed | Training Accuracy: 0.923 | Training time batch: 0.575 seconds
+------Epoch 4/5 | Training Accuracy: 0.922 | Validation Accuracy: 0.651 | Training time epoch: 0.524 minutes------
+Epoch 5: 1/55 data batches processed | Training Accuracy: 0.961 | Training time batch: 0.572 seconds
+Epoch 5: 6/55 data batches processed | Training Accuracy: 0.949 | Training time batch: 0.572 seconds
+Epoch 5: 11/55 data batches processed | Training Accuracy: 0.942 | Training time batch: 0.578 seconds
+Epoch 5: 16/55 data batches processed | Training Accuracy: 0.942 | Training time batch: 0.575 seconds
+Epoch 5: 21/55 data batches processed | Training Accuracy: 0.944 | Training time batch: 0.575 seconds
+Epoch 5: 26/55 data batches processed | Training Accuracy: 0.942 | Training time batch: 0.576 seconds
+Epoch 5: 31/55 data batches processed | Training Accuracy: 0.943 | Training time batch: 0.572 seconds
+Epoch 5: 36/55 data batches processed | Training Accuracy: 0.945 | Training time batch: 0.572 seconds
+Epoch 5: 41/55 data batches processed | Training Accuracy: 0.947 | Training time batch: 0.572 seconds
+Epoch 5: 46/55 data batches processed | Training Accuracy: 0.946 | Training time batch: 0.576 seconds
+Epoch 5: 51/55 data batches processed | Training Accuracy: 0.947 | Training time batch: 0.572 seconds
+------Epoch 5/5 | Training Accuracy: 0.947 | Validation Accuracy: 0.679 | Training time epoch: 0.526 minutes------
+Training finished. Returning fine-tuned model
+                                                       precision    recall  f1-score   support
+
+   accommodation, hotel, restaurants and food service      0.756     0.793     0.774       121
+                   arts, entertainment and recreation      0.604     0.615     0.609       109
+                                         construction      1.000     1.000     1.000         0
+                      education, teaching and schools      0.824     0.942     0.879       139
+                               electricity and energy      0.856     0.669     0.751       124
+                              financial and insurance      0.525     0.600     0.560        35
+                        information and communication      0.503     0.854     0.633       103
+                                 legal and consulting      0.333     1.000     0.500         4
+                                        manufacturing      0.281     0.097     0.145       185
+                        medicine, health and hospital      0.829     0.767     0.797       120
+                                              medtech      0.231     0.419     0.298        74
+            newspapers, television and media industry      0.045     0.667     0.085         3
+                     pharmaceutical and life sciences      0.912     0.697     0.790       119
+public administration and international organizations      0.676     0.671     0.674       146
+                                          real estate      0.849     0.856     0.852       118
+                                research and academia      0.885     0.826     0.854       149
+                           transportation and storage      0.367     0.333     0.349        33
+                          wholesale and retail stores      0.919     0.829     0.872       164
+
+                                            micro avg      0.679     0.679     0.679      1746
+                                            macro avg      0.633     0.702     0.635      1746
+                                         weighted avg      0.699     0.679     0.677      1746
+
+Model saved as:  /scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer_nace.pt

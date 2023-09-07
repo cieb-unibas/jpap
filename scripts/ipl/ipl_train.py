@@ -278,8 +278,8 @@ if __name__ == "__main__":
     # parameters regarding the training dataset:
     TRAIN_DAT = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/industry_train.csv"
     ONLY_UNIQUE_EMPLOYERS = False
-    INDUSTRY_LEVEL = "pharma" # must be one of "pharma", "macro", "meso" or None
-    MAX_SAMPLES_PER_INDUSTRY = 600
+    INDUSTRY_LEVEL = "nace" # must be one of "pharma", "macro", "meso" or "nace"
+    MAX_SAMPLES_PER_INDUSTRY = 500
 
     # parameters indicating preprocessing of the training data:
     BLIND_EMPLOYER_NAMES = True
@@ -289,8 +289,8 @@ if __name__ == "__main__":
     RETRAIN_ON_FULL_DATASET = False
     SAVE_MODEL_PATH = "/scicore/home/weder/GROUP/Innovation/05_job_adds_data/augmentation_data/ipl_classifer%s.pt" % ("_" + INDUSTRY_LEVEL)
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    BATCH_SIZE = 32
-    EPOCHS = 1
+    BATCH_SIZE = 128
+    EPOCHS = 5
     print("Training the model on %s over %d epochs in batches of size %d." % (DEVICE, EPOCHS, BATCH_SIZE))
     
     # loading the dataset
@@ -298,7 +298,8 @@ if __name__ == "__main__":
         df = load_labelled(path=TRAIN_DAT).drop_duplicates(subset=["company_name"]).reset_index(drop=True)
     else:
         df = load_labelled(path = TRAIN_DAT)
-    df = restrict_industry_level(df=df, industry_level=INDUSTRY_LEVEL)
+    if INDUSTRY_LEVEL != "nace":
+        df = restrict_industry_level(df=df, industry_level=INDUSTRY_LEVEL)
     if MAX_SAMPLES_PER_INDUSTRY:
         df = subsample_df(df=df, group_col="industry", max_n_per_group = MAX_SAMPLES_PER_INDUSTRY)
     print("Total number of samples in the dataset: ", len(df))
