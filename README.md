@@ -38,13 +38,37 @@ pharma|2|89%
 
 :warning: **IMPORTANT:** `IPL` makes use of two relatively large language models that are computationally expensive to use. Hence, you are strongly recommended to use the scicore cluster's GPUs via a slurm script (see <a href="./examples/main_scicore.sh">here</a> for an example).
 
-After you `cd` into this repository's directory, `IPL` can easily be loaded as follows:
+After you `cd` into this repository's directory, `IPL` can easily be loaded and applied to job postings texts:
 
 ```python
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 from jpap.ipl import IPL
 
+# helper function to load and predict sample
+def load_and_predict_example(company_name, pipeline):
+    with open(f'./examples/retrieved_postings/{company_name}.txt', "r") as f:
+        text = f.read().replace("\n", " ")
+    industry_label = pipeline(postings = [text], company_names = [company_name])
+    print(f'"{company_name} is predicted to be part of the industry: "{industry_label[0]}""')
+
+# load and specify IPL
 industry_pipeline = IPL(classifier = "macro")
+
+# inference with an example posting from the pharmaceutical industry: https://acino.swiss/
+company_name = "acino"
+load_and_predict_example(company_name, industry_pipeline)
+"acino is predicted to be part of the industry: "pharmaceutical and life sciences""
+
+# inference with an example posting from the financial industry: https://www.saanenbank.ch/de
+company_name = "saanen_bank"
+load_and_predict_example(company_name, industry_pipeline)
+"saanen_bank is predicted to be part of the industry: "services""
 ```
+
 :exclamation: **A more extensive example highlighting how to use `IPL` together with `jpod` can be found  <a href='./examples/'>here</a>.**
 
 ### How was IPL trained and how does it work?
