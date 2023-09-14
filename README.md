@@ -1,11 +1,11 @@
 # JPAP [WORK IN PROGRESS]
-The idea of JPAP ('job postings analyses pipelines') is to create different pipelines for in-depth analysis of job postings contained in the CIEB Job Postings Database (JPOD).
+The idea of JPAP ('job postings analyses pipelines') is to create different pipelines for in-depth analysis of job postings contained in the CIEBs Job Postings Database (<a href="https://github.com/cieb-unibas/jpod">JPOD</a>).
 
 ## Usage
 
 You can either use JPAP via an existing virtual environment on the scicore cluster or setup a new one yourself for your project.
 
-### Use scicore environment
+### Use existing scicore virtual environment
 To activate the jpap environment on scicore run the following on the command line:
 
 ```bash
@@ -13,18 +13,18 @@ cd /scicore/home/weder/GROUP/Innovation/05_job_adds_data/
 source jpap-venv/bin/activate
 ```
 
-### Install manually
+### Install a new virtual environment manually
 To install a new environment, `cd` into this repository, setup a virtual environment via conda or pip and install dependencies:
 
 Using conda
 ```bash
-conda create --name [YOUR_ENV_NAME] python=3.9
+conda create --name YOUR_ENV_NAME python=3.9
 conda install -r requirements.txt
 ```
 
 Using pip
 ```bash
-python venv [YOUR_ENV_NAME]
+python venv YOUR_ENV_NAME
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -36,7 +36,7 @@ If you encounter problems installing the dependencies for JPAP, check for GPU su
 ## Job Postings Industry Pipeline (IPL)
 
 ### Challenge and Approach
-JPOD does not feature any (reliable) information about the industries that job postings are associated with. The industry pipeline (IPL) is an attempt to solve this problem. IPL is powered by **pre-trained language models**, which it uses for feature extraction from postings texts and classification thereof (see explanations below). 
+JPOD does not feature any (reliable) information about the industries that job postings are associated with. The industry pipeline (IPL) is an attempt to solve this problem. IPL is powered by **pre-trained language models**, which it uses for feature extraction from job postings' texts and classification thereof (see explanations below). 
 
 IPL can be configured to assign job postings (and thereby companies) to **four different industry levels: 'nace' 'meso', 'macro' and 'pharma'**. The corresponding industry mappings can be found in the [`data/raw/`](./data/raw/) directory and performance reports of the corresponding trained models can be accessed in the following [`scirpts/ipl/logs/`](./scripts/ipl/logs/) directory. An overview is given in the table below.
 
